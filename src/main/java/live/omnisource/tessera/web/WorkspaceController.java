@@ -1,35 +1,79 @@
 package live.omnisource.tessera.web;
 
-import live.omnisource.tessera.workspace.dto.CreateWorkspaceRecord;
-import live.omnisource.tessera.workspace.WorkspaceRepository;
+import live.omnisource.tessera.datastore.DataStoreService;
+import live.omnisource.tessera.workspace.WorkspaceService;
+import live.omnisource.tessera.workspace.dto.WorkspaceDto;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-@Controller("/workspace")
+@Controller
+@RequestMapping("/workspaces")
 public class WorkspaceController {
 
-    private final WorkspaceRepository workspaceRepository;
+    private final WorkspaceService workspaceService;
+    private final DataStoreService dataStoreService;
 
-    public WorkspaceController(WorkspaceRepository workspaceRepository) {
-        this.workspaceRepository = workspaceRepository;
+    public WorkspaceController(WorkspaceService workspaceService,
+                               DataStoreService dataStoreService) {
+        this.workspaceService = workspaceService;
+        this.dataStoreService = dataStoreService;
     }
 
-    @GetMapping("/new")
-    public String newWorkspaceForm() {
-        return "forms/workspace/new";
+    /**
+     * List all workspaces.
+     */
+    @GetMapping
+    public String list(Model model) {
+        model.addAttribute("title", "Workspaces");
+        model.addAttribute("description", "Manage your project workspaces.");
+        model.addAttribute("view", "workspaces/list");
+        model.addAttribute("workspaces", workspaceService.listWorkspaces());
+        return "layout/page";
     }
 
+    /**
+     * Create a new workspace.
+     */
     @PostMapping
-    public void createWorkspace(@RequestParam String name) {
-        workspaceRepository.create(new CreateWorkspaceRecord(name));
-
+    public String create(@RequestParam("name") String name, RedirectAttributes redirect) {
+        try {
+            workspaceService.createWorkspace(new WorkspaceDto(name));
+            redirect.addFlashAttribute("success", "Workspace '" + name + "' created.");
+        } catch (Exception e) {
+            redirect.addFlashAttribute("error", e.getMessage());
+        }
+        return "redirect:/workspaces";
     }
 
-    @GetMapping("/{workspace}")
-    public String getWorkspace(@PathVariable String workspace) {
-        return "pages/workspace/panel";
+    /**
+     * Delete a workspace.
+     */
+    @PostMapping("/{name}/delete")
+    public String delete(@PathVariable String name, RedirectAttributes redirect) {
+        try {
+            workspaceService.deleteWorkspace(new WorkspaceDto(name));
+            redirect.addFlashAttribute("success", "Workspace '" + name + "' deleted.");
+        } catch (Exception e) {
+            redirect.addFlashAttribute("error", e.getMessage());
+        }
+        return "redirect:/workspaces";
+    }
+
+    /**
+     * Workspace detail — shows data stores and create form.
+     */
+    @GetMapping("/{name}")
+    public String detail(@PathVariable String name, Model model) {
+        var workspace = workspaceService.getWorkspace(new WorkspaceDto(name));
+        var datastores = dataStoreService.listDataStores(name);
+
+        model.addAttribute("title", name);
+        model.addAttribute("description", "Workspace details and data stores.");
+        model.addAttribute("view", "workspaces/detail");
+        model.addAttribute("workspace", workspace);
+        model.addAttribute("datastores", datastores);
+        return "layout/page";
     }
 }

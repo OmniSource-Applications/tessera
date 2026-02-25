@@ -11,7 +11,8 @@ public record ApplicationProperties(
         H3Properties h3,
         SyncProperties sync,
         CatalogProperties catalog,
-        CryptoProperties crypto
+        CryptoProperties crypto,
+        ConnectorsProperties connectors
 ) {
     public record H3Properties(
             @DefaultValue({"3", "5", "7", "9", "11"}) List<Integer> resolutions,
@@ -31,4 +32,14 @@ public record ApplicationProperties(
     ) {}
 
     public record CryptoProperties(String salt) {}
+
+    public record ConnectorsProperties(
+            CassandraProperties cassandra
+    ) {
+        public record CassandraProperties(
+                @DefaultValue("10") int sessionsMax,
+                @DefaultValue("30") int expirationMinutes
+        ) {}
+
+    }
 }

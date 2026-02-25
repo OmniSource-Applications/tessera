@@ -35,7 +35,7 @@ public class FileStoreService {
     /**
      * Initializes the file storage service by creating necessary directories
      * for services, network, database, authentication, secrets, RBAC, security,
-     * catalog, and workspaces. This method ensures that the file structure is
+     * catalog, and workspaces.html. This method ensures that the file structure is
      * properly set up for Tessera's file-based storage operations.
      */
     public void init() {

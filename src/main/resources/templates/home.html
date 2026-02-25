@@ -4,7 +4,12 @@
 
 <th:block th:fragment="content">
 
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
+
+        <div class="bg-surface border border-border rounded-xl p-5">
+            <p class="text-xs font-medium text-muted uppercase tracking-wide">Workspaces</p>
+            <p class="mt-1 text-2xl font-semibold text-foreground" th:text="${workspacesCount} ?: '—'">—</p>
+        </div>
 
         <div class="bg-surface border border-border rounded-xl p-5">
             <p class="text-xs font-medium text-muted uppercase tracking-wide">Sources</p>

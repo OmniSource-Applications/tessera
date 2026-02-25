@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<th:block th:fragment="content">
+
+    <!-- Breadcrumb -->
+    <nav class="mb-6 text-sm text-muted">
+        <a th:href="@{/workspaces}" class="hover:text-foreground transition-colors">Workspaces</a>
+        <span class="mx-1.5">/</span>
+        <span class="text-foreground font-medium" th:text="${workspace.name()}">workspace</span>
+    </nav>
+
+    <!-- Flash messages -->
+    <div th:if="${success}"
+         class="mb-6 rounded-lg bg-success/10 border border-success/20 px-4 py-3 text-sm text-success">
+        <span th:text="${success}">Success</span>
+    </div>
+    <div th:if="${error}"
+         class="mb-6 rounded-lg bg-danger/10 border border-danger/20 px-4 py-3 text-sm text-danger">
+        <span th:text="${error}">Error</span>
+    </div>
+
+    <!-- Create Data Store -->
+    <div class="bg-surface border border-border rounded-xl p-6 mb-8">
+        <h2 class="text-lg font-semibold text-foreground mb-4">New Data Store</h2>
+
+        <form th:action="@{/workspaces/{ws}/datastores(ws=${workspace.name()})}"
+              method="post" class="space-y-4" id="create-datastore-form">
+
+            <!-- Row 1: Name + Type -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                    <label for="ds-name" class="block text-sm font-medium text-foreground mb-1.5">Name</label>
+                    <input id="ds-name" type="text" name="name" required
+                           placeholder="my-postgres"
+                           pattern="[a-zA-Z0-9][a-zA-Z0-9_-]{0,63}"
+                           title="Letters, numbers, hyphens, underscores. Must start with a letter or number."
+                           class="w-full rounded-lg border border-input bg-background px-3.5 py-2.5 text-sm text-foreground
+                        placeholder:text-placeholder focus:outline-none focus:ring-2 focus:ring-ring/40
+                        focus:border-primary hover:border-input-hover transition-colors"/>
+                </div>
+                <div>
+                    <label for="ds-type" class="block text-sm font-medium text-foreground mb-1.5">Type</label>
+                    <select id="ds-type" name="type" required
+                            class="w-full rounded-lg border border-input bg-background px-3.5 py-2.5 text-sm text-foreground
+                         focus:outline-none focus:ring-2 focus:ring-ring/40 focus:border-primary
+                         hover:border-input-hover transition-colors">
+                        <option value="">Select a type…</option>
+                        <option value="POSTGIS">PostgreSQL / PostGIS</option>
+                        <option value="MYSQL">MySQL</option>
+                        <option value="ORACLE">Oracle DB</option>
+                        <option value="CASSANDRA">Cassandra</option>
+                        <option value="ELASTICSEARCH">Elasticsearch</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- JDBC fields (PostGIS, MySQL, Oracle) -->
+            <div id="jdbc-fields" class="hidden space-y-4">
+                <div>
+                    <label for="ds-url" class="block text-sm font-medium text-foreground mb-1.5">JDBC URL</label>
+                    <input id="ds-url" type="text" name="url"
+                           placeholder="jdbc:postgresql://localhost:5432/mydb"
+                           class="w-full rounded-lg border border-input bg-background px-3.5 py-2.5 text-sm text-foreground
+                        placeholder:text-placeholder focus:outline-none focus:ring-2 focus:ring-ring/40
+                        focus:border-primary hover:border-input-hover transition-colors"/>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label for="ds-j-user" class="block text-sm font-medium text-foreground mb-1.5">Username</label>
+                        <input id="ds-j-user" type="text" name="username"
+                               placeholder="postgres"
+                               class="w-full rounded-lg border border-input bg-background px-3.5 py-2.5 text-sm text-foreground
+                          placeholder:text-placeholder focus:outline-none focus:ring-2 focus:ring-ring/40
+                          focus:border-primary hover:border-input-hover transition-colors"/>
+                    </div>
+                    <div>
+                        <label for="ds-j-pass" class="block text-sm font-medium text-foreground mb-1.5">Password</label>
+                        <input id="ds-j-pass" type="password" name="password"
+                               placeholder="••••••"
+                               class="w-full rounded-lg border border-input bg-background px-3.5 py-2.5 text-sm text-foreground
+                          placeholder:text-placeholder focus:outline-none focus:ring-2 focus:ring-ring/40
+                          focus:border-primary hover:border-input-hover transition-colors"/>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-4 w-64">
+                    <div>
+                        <label for="ds-jdbc-port" class="block text-sm font-medium text-foreground mb-1.5">Port</label>
+                        <input id="ds-jdbc-port" type="number" name="port" value="5432" min="1" max="65535"
+                               class="w-full rounded-lg border border-input bg-background px-3.5 py-2.5 text-sm text-foreground
+                  focus:outline-none focus:ring-2 focus:ring-ring/40 focus:border-primary
+                  hover:border-input-hover transition-colors"/>
+                    </div>
+                    <div>
+                        <label for="ds-pool" class="block text-sm font-medium text-foreground mb-1.5">Pool Size</label>
+                        <input id="ds-pool" type="number" name="poolSize" value="8" min="1" max="100"
+                               class="w-full rounded-lg border border-input bg-background px-3.5 py-2.5 text-sm text-foreground
+                  focus:outline-none focus:ring-2 focus:ring-ring/40 focus:border-primary
+                  hover:border-input-hover transition-colors"/>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Cassandra fields -->
+            <div id="cassandra-fields" class="hidden space-y-4">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label for="ds-contact" class="block text-sm font-medium text-foreground mb-1.5">Contact Points</label>
+                        <input id="ds-contact" type="text" name="contactPoints"
+                               placeholder="node1,node2,node3"
+                               class="w-full rounded-lg border border-input bg-background px-3.5 py-2.5 text-sm text-foreground
+                          placeholder:text-placeholder focus:outline-none focus:ring-2 focus:ring-ring/40
+                          focus:border-primary hover:border-input-hover transition-colors"/>
+                    </div>
+                    <div class="w-32">
+                        <label for="ds-port" class="block text-sm font-medium text-foreground mb-1.5">Port</label>
+                        <input id="ds-port" type="number" name="port" value="9042"
+                               class="w-full rounded-lg border border-input bg-background px-3.5 py-2.5 text-sm text-foreground
+                          focus:outline-none focus:ring-2 focus:ring-ring/40 focus:border-primary
+                          hover:border-input-hover transition-colors"/>
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label for="ds-dc" class="block text-sm font-medium text-foreground mb-1.5">Datacenter</label>
+                        <input id="ds-dc" type="text" name="datacenter"
+                               placeholder="datacenter1"
+                               class="w-full rounded-lg border border-input bg-background px-3.5 py-2.5 text-sm text-foreground
+                          placeholder:text-placeholder focus:outline-none focus:ring-2 focus:ring-ring/40
+                          focus:border-primary hover:border-input-hover transition-colors"/>
+                    </div>
+                    <div>
+                        <label for="ds-ks" class="block text-sm font-medium text-foreground mb-1.5">Keyspace</label>
+                        <input id="ds-ks" type="text" name="keyspace"
+                               placeholder="my_keyspace"
+                               class="w-full rounded-lg border border-input bg-background px-3.5 py-2.5 text-sm text-foreground
+                          placeholder:text-placeholder focus:outline-none focus:ring-2 focus:ring-ring/40
+                          focus:border-primary hover:border-input-hover transition-colors"/>
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label for="ds-c-user" class="block text-sm font-medium text-foreground mb-1.5">Username</label>
+                        <input id="ds-c-user" type="text" name="username"
+                               placeholder="cassandra"
+                               class="w-full rounded-lg border border-input bg-background px-3.5 py-2.5 text-sm text-foreground
+                          placeholder:text-placeholder focus:outline-none focus:ring-2 focus:ring-ring/40
+                          focus:border-primary hover:border-input-hover transition-colors"/>
+                    </div>
+                    <div>
+                        <label for="ds-c-pass" class="block text-sm font-medium text-foreground mb-1.5">Password</label>
+                        <input id="ds-c-pass" type="password" name="password"
+                               placeholder="••••••"
+                               class="w-full rounded-lg border border-input bg-background px-3.5 py-2.5 text-sm text-foreground
+                          placeholder:text-placeholder focus:outline-none focus:ring-2 focus:ring-ring/40
+                          focus:border-primary hover:border-input-hover transition-colors"/>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Elasticsearch fields -->
+            <div id="elastic-fields" class="hidden space-y-4">
+                <div>
+                    <label for="ds-hosts" class="block text-sm font-medium text-foreground mb-1.5">Hosts</label>
+                    <input id="ds-hosts" type="text" name="hosts"
+                           placeholder="https://localhost:9200"
+                           class="w-full rounded-lg border border-input bg-background px-3.5 py-2.5 text-sm text-foreground
+                        placeholder:text-placeholder focus:outline-none focus:ring-2 focus:ring-ring/40
+                        focus:border-primary hover:border-input-hover transition-colors"/>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label for="ds-e-user" class="block text-sm font-medium text-foreground mb-1.5">Username</label>
+                        <input id="ds-e-user" type="text" name="username"
+                               placeholder="elastic"
+                               class="w-full rounded-lg border border-input bg-background px-3.5 py-2.5 text-sm text-foreground
+                          placeholder:text-placeholder focus:outline-none focus:ring-2 focus:ring-ring/40
+                          focus:border-primary hover:border-input-hover transition-colors"/>
+                    </div>
+                    <div>
+                        <label for="ds-e-pass" class="block text-sm font-medium text-foreground mb-1.5">Password</label>
+                        <input id="ds-e-pass" type="password" name="password"
+                               placeholder="••••••"
+                               class="w-full rounded-lg border border-input bg-background px-3.5 py-2.5 text-sm text-foreground
+                          placeholder:text-placeholder focus:outline-none focus:ring-2 focus:ring-ring/40
+                          focus:border-primary hover:border-input-hover transition-colors"/>
+                    </div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <input id="ds-ssl" type="checkbox" name="verifySsl" value="true" checked
+                           class="h-4 w-4 rounded border-input text-primary focus:ring-ring/40"/>
+                    <label for="ds-ssl" class="text-sm text-foreground">Verify SSL</label>
+                </div>
+            </div>
+
+            <!-- Submit -->
+            <div class="pt-2">
+                <button type="submit"
+                        class="rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground
+                       hover:bg-primary-hover active:scale-[0.98]
+                       focus:outline-none focus:ring-2 focus:ring-ring/40 transition-all">
+                    Test &amp; Create
+                </button>
+            </div>
+
+        </form>
+    </div>
+
+    <!-- Data Store List -->
+    <div class="bg-surface border border-border rounded-xl overflow-hidden">
+        <div class="px-6 py-4 border-b border-border">
+            <h2 class="text-base font-semibold text-foreground">Data Stores</h2>
+        </div>
+
+        <!-- Empty state -->
+        <div th:if="${datastores == null || datastores.isEmpty()}"
+             class="px-6 py-12 text-center">
+            <svg class="mx-auto h-10 w-10 text-muted mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                      d="M20.25 6.375c0 2.278-3.694 4.125-8.25 4.125S3.75 8.653 3.75 6.375m16.5 0c0-2.278-3.694-4.125-8.25-4.125S3.75 4.097 3.75 6.375m16.5 0v11.25c0 2.278-3.694 4.125-8.25 4.125s-8.25-1.847-8.25-4.125V6.375m16.5 0v3.75m-16.5-3.75v3.75m16.5 0v3.75C20.25 16.153 16.556 18 12 18s-8.25-1.847-8.25-4.125v-3.75m16.5 0c0 2.278-3.694 4.125-8.25 4.125s-8.25-1.847-8.25-4.125"/>
+            </svg>
+            <p class="text-sm text-muted">No data stores yet. Add one above to connect your first source.</p>
+        </div>
+
+        <!-- Table -->
+        <table th:if="${datastores != null && !datastores.isEmpty()}" class="w-full text-sm text-left">
+            <thead class="border-b border-border">
+            <tr>
+                <th class="px-6 py-3 font-medium text-muted uppercase tracking-wide text-xs">Name</th>
+                <th class="px-6 py-3 font-medium text-muted uppercase tracking-wide text-xs text-right">Actions</th>
+            </tr>
+            </thead>
+            <tbody class="divide-y divide-border">
+            <tr th:each="ds : ${datastores}"
+                class="hover:bg-background/50 transition-colors">
+                <td class="px-6 py-4">
+                    <a th:href="@{/workspaces/{ws}/datastores/{ds}(ws=${workspace.name()}, ds=${ds})}"
+                       th:text="${ds}"
+                       class="font-medium text-foreground hover:text-primary transition-colors">
+                        store-name
+                    </a>
+                </td>
+                <td class="px-6 py-4 text-right">
+                    <form th:action="@{/workspaces/{ws}/datastores/{ds}/delete(ws=${workspace.name()}, ds=${ds})}"
+                          method="post" class="inline"
+                          onsubmit="return confirm('Delete data store \'' + this.dataset.name + '\'?');"
+                          th:attr="data-name=${ds}">
+                        <button type="submit"
+                                class="rounded-lg px-3 py-1.5 text-xs font-medium
+                             text-danger hover:bg-danger/10 transition-colors">
+                            Delete
+                        </button>
+                    </form>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Type toggle script -->
+    <script>
+        (function () {
+            var typeSelect = document.getElementById('ds-type');
+            var jdbc       = document.getElementById('jdbc-fields');
+            var cassandra  = document.getElementById('cassandra-fields');
+            var elastic    = document.getElementById('elastic-fields');
+            var jdbcTypes  = ['POSTGIS', 'MYSQL', 'ORACLE'];
+
+            function toggle() {
+                var v = typeSelect.value;
+                jdbc.classList.toggle('hidden', !jdbcTypes.includes(v));
+                cassandra.classList.toggle('hidden', v !== 'CASSANDRA');
+                elastic.classList.toggle('hidden', v !== 'ELASTICSEARCH');
+
+                // Set sensible default port for JDBC types
+                var jdbcPort = document.getElementById('ds-jdbc-port');
+                if (jdbcPort) {
+                    var defaults = { 'POSTGIS': 5432, 'MYSQL': 3306, 'ORACLE': 1521 };
+                    if (defaults[v]) jdbcPort.value = defaults[v];
+                }
+
+                [jdbc, cassandra, elastic].forEach(function (section) {
+                    var hidden = section.classList.contains('hidden');
+                    section.querySelectorAll('input, select').forEach(function (el) {
+                        el.disabled = hidden;
+                    });
+                });
+            }
+
+            typeSelect.addEventListener('change', toggle);
+            toggle();
+        })();
+    </script>
+
+</th:block>
+
+</body>
+</html>
