@@ -14,7 +14,7 @@ different data sources allowing users to fuse, modify, and visualize geospatial 
 
 ---
 
-TODO: GPL
+tessera is licensed under the [GPL](liscense.md).
 
 ## Using
 
