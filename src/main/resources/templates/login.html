@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{layout/base :: head(title='Login')}">
+  <title>Tessera</title>
+</head>
+<body class="bg-background text-foreground min-h-screen flex flex-col items-center justify-center px-4 antialiased">
+
+<div class="w-full max-w-sm">
+
+  <!-- Logo + Wordmark -->
+  <div class="flex flex-col items-center mb-10">
+    <svg class="h-12 w-12 mb-4" viewBox="0 0 96 96" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M48 20L65.32 30V50L48 60L30.68 50V30L48 20Z" class="fill-primary"/>
+      <path d="M65.32 10L82.64 20V40L65.32 50L48 40V20L65.32 10Z" class="fill-primary opacity-55"/>
+      <path d="M65.32 50L82.64 60V80L65.32 90L48 80V60L65.32 50Z" class="fill-primary opacity-25"/>
+      <path d="M30.68 10L48 20V40L30.68 50L13.36 40V20L30.68 10Z" class="fill-primary opacity-40"/>
+      <path d="M30.68 50L48 60V80L30.68 90L13.36 80V60L30.68 50Z" class="fill-primary opacity-15"/>
+      <circle cx="48" cy="40" r="3.5" class="fill-accent"/>
+    </svg>
+    <h1 class="text-2xl font-semibold tracking-tight text-foreground">tessera</h1>
+    <p class="mt-1 text-sm text-muted">Sign in to your account</p>
+  </div>
+
+  <!-- Card -->
+  <div class="bg-surface border border-border rounded-2xl p-8 shadow-sm">
+
+    <!-- Error message -->
+    <div th:if="${param.error}" class="mb-5 rounded-lg bg-danger/10 border border-danger/20 px-4 py-3 text-sm text-danger">
+      Invalid username or password.
+    </div>
+
+    <!-- Logout message -->
+    <div th:if="${param.logout}" class="mb-5 rounded-lg bg-success/10 border border-success/20 px-4 py-3 text-sm text-success">
+      You have been signed out.
+    </div>
+
+    <form th:action="@{/login}" method="post" class="space-y-5">
+
+      <!-- Username -->
+      <div>
+        <label for="username" class="block text-sm font-medium text-foreground mb-1.5">Username</label>
+        <input id="username"
+               type="text"
+               name="username"
+               required
+               autofocus
+               placeholder="admin"
+               class="w-full rounded-lg border border-input bg-background px-3.5 py-2.5 text-sm text-foreground
+                        placeholder:text-placeholder
+                        focus:outline-none focus:ring-2 focus:ring-ring/40 focus:border-primary
+                        hover:border-input-hover
+                        transition-colors"/>
+      </div>
+
+      <!-- Password -->
+      <div>
+        <label for="password" class="block text-sm font-medium text-foreground mb-1.5">Password</label>
+        <input id="password"
+               type="password"
+               name="password"
+               required
+               placeholder="••••••"
+               class="w-full rounded-lg border border-input bg-background px-3.5 py-2.5 text-sm text-foreground
+                        placeholder:text-placeholder
+                        focus:outline-none focus:ring-2 focus:ring-ring/40 focus:border-primary
+                        hover:border-input-hover
+                        transition-colors"/>
+      </div>
+
+      <!-- Submit -->
+      <button type="submit"
+              class="w-full flex items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2.5
+                       text-sm font-medium text-primary-foreground
+                       hover:bg-primary-hover active:scale-[0.98]
+                       focus:outline-none focus:ring-2 focus:ring-ring/40 focus:ring-offset-2 focus:ring-offset-background
+                       transition-all">
+        Sign In
+      </button>
+
+    </form>
+  </div>
+
+  <!-- Footer note -->
+  <p class="mt-6 text-center text-xs text-muted">
+    &copy; <span th:text="${#temporals.format(#temporals.createNow(), 'yyyy')}">2026</span> Tessera &middot; All rights reserved.
+  </p>
+
+</div>
+
+</body>
+</html>

@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<footer th:fragment="footer" class="mt-auto border-t border-border bg-surface">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+    <div class="flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-muted">
+
+      <!-- Left: branding -->
+      <div class="flex items-center gap-2">
+        <svg class="h-4 w-4 shrink-0" viewBox="0 0 96 96" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M48 20L65.32 30V50L48 60L30.68 50V30L48 20Z" class="fill-primary"/>
+          <path d="M65.32 10L82.64 20V40L65.32 50L48 40V20L65.32 10Z" class="fill-primary opacity-55"/>
+          <path d="M65.32 50L82.64 60V80L65.32 90L48 80V60L65.32 50Z" class="fill-primary opacity-25"/>
+          <path d="M30.68 10L48 20V40L30.68 50L13.36 40V20L30.68 10Z" class="fill-primary opacity-40"/>
+          <path d="M30.68 50L48 60V80L30.68 90L13.36 80V60L30.68 50Z" class="fill-primary opacity-15"/>
+          <circle cx="48" cy="40" r="3.5" class="fill-accent"/>
+        </svg>
+        <span class="font-medium text-foreground">tessera</span>
+        <span class="hidden sm:inline">&middot;</span>
+        <span class="hidden sm:inline" th:text="'© ' + ${#temporals.format(#temporals.createNow(), 'yyyy')} + ' All rights reserved.'">
+          © 2026 All rights reserved.
+        </span>
+      </div>
+
+      <!-- Center: nav links -->
+      <div class="flex items-center gap-4">
+        <a th:href="@{/docs}" class="hover:text-foreground transition-colors">Docs</a>
+        <a th:href="@{/api}" class="hover:text-foreground transition-colors">API</a>
+        <a th:href="@{/status}" class="hover:text-foreground transition-colors">Status</a>
+      </div>
+
+      <!-- Right: live connection indicator -->
+      <div class="flex items-center gap-2" id="connection-status">
+        <span class="relative flex h-2 w-2">
+          <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-success opacity-75"></span>
+          <span class="relative inline-flex rounded-full h-2 w-2 bg-success"></span>
+        </span>
+        <span class="text-xs">Connected</span>
+      </div>
+
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

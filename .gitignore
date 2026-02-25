@@ -1,0 +1,10 @@
+/.gradle
+/gradle
+gradlew
+gradlew.bat
+/.idea
+/build
+/src/main/frontend/node_modules
+/data_dir
+/ops
+HELP.md

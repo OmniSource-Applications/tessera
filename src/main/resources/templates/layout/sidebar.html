@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<aside th:fragment="sidebar" id="sidebar"
+       class="fixed inset-y-0 left-0 z-40 flex flex-col
+              w-64 bg-surface border-r border-border
+              transition-transform duration-200 ease-in-out
+              -translate-x-full lg:translate-x-0">
+
+    <!-- Logo + collapse -->
+    <div class="flex items-center justify-between h-14 px-4 border-b border-border shrink-0">
+        <a th:href="@{/}" class="flex items-center gap-2.5 group">
+            <svg class="h-7 w-7 shrink-0" viewBox="0 0 96 96" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M48 20L65.32 30V50L48 60L30.68 50V30L48 20Z" class="fill-primary"/>
+                <path d="M65.32 10L82.64 20V40L65.32 50L48 40V20L65.32 10Z" class="fill-primary opacity-55"/>
+                <path d="M65.32 50L82.64 60V80L65.32 90L48 80V60L65.32 50Z" class="fill-primary opacity-25"/>
+                <path d="M30.68 10L48 20V40L30.68 50L13.36 40V20L30.68 10Z" class="fill-primary opacity-40"/>
+                <path d="M30.68 50L48 60V80L30.68 90L13.36 80V60L30.68 50Z" class="fill-primary opacity-15"/>
+                <circle cx="48" cy="40" r="3.5" class="fill-accent"/>
+            </svg>
+            <span class="text-lg font-semibold tracking-tight text-foreground group-hover:text-primary transition-colors">
+        tessera
+      </span>
+        </a>
+        <button id="sidebar-close" type="button"
+                class="p-1.5 rounded-lg text-muted hover:text-foreground hover:bg-background transition-colors"
+                aria-label="Close sidebar">
+            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5"/>
+            </svg>
+        </button>
+    </div>
+
+    <!-- Nav links -->
+    <nav class="flex-1 overflow-y-auto px-3 py-4 space-y-1">
+
+        <p class="px-3 mb-2 text-[0.65rem] font-semibold uppercase tracking-widest text-muted">Overview</p>
+
+        <a th:href="@{/}"
+           th:classappend="${'/'} ? 'bg-primary/10 text-primary' : 'text-muted hover:text-foreground hover:bg-background'"
+           class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors">
+            <svg class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z"/>
+            </svg>
+            Dashboard
+        </a>
+
+        <p class="px-3 mt-5 mb-2 text-[0.65rem] font-semibold uppercase tracking-widest text-muted">Data</p>
+
+        <a th:href="@{/sources}"
+           th:classappend="${'/sources'} ? 'bg-primary/10 text-primary' : 'text-muted hover:text-foreground hover:bg-background'"
+           class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors">
+            <svg class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M20.25 6.375c0 2.278-3.694 4.125-8.25 4.125S3.75 8.653 3.75 6.375m16.5 0c0-2.278-3.694-4.125-8.25-4.125S3.75 4.097 3.75 6.375m16.5 0v11.25c0 2.278-3.694 4.125-8.25 4.125s-8.25-1.847-8.25-4.125V6.375m16.5 0v3.75m-16.5-3.75v3.75m16.5 0v3.75C20.25 16.153 16.556 18 12 18s-8.25-1.847-8.25-4.125v-3.75m16.5 0c0 2.278-3.694 4.125-8.25 4.125s-8.25-1.847-8.25-4.125"/>
+            </svg>
+            Sources
+        </a>
+
+        <a th:href="@{/query}"
+           th:classappend="${'/query'} ? 'bg-primary/10 text-primary' : 'text-muted hover:text-foreground hover:bg-background'"
+           class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors">
+            <svg class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"/>
+            </svg>
+            Query
+        </a>
+
+        <a th:href="@{/streams}"
+           th:classappend="${'/streams'} ? 'bg-primary/10 text-primary' : 'text-muted hover:text-foreground hover:bg-background'"
+           class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors">
+            <svg class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9.348 14.651a3.75 3.75 0 010-5.303m5.304 0a3.75 3.75 0 010 5.303m-7.425 2.122a6.75 6.75 0 010-9.546m9.546 0a6.75 6.75 0 010 9.546M5.106 18.894c-3.808-3.808-3.808-9.98 0-13.789m13.788 0c3.808 3.808 3.808 9.981 0 13.79"/>
+            </svg>
+            Streams
+        </a>
+
+        <p class="px-3 mt-5 mb-2 text-[0.65rem] font-semibold uppercase tracking-widest text-muted">System</p>
+
+        <a th:href="@{/settings}"
+           th:classappend="${'/settings'} ? 'bg-primary/10 text-primary' : 'text-muted hover:text-foreground hover:bg-background'"
+           class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors">
+            <svg class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.324.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 011.37.49l1.296 2.247a1.125 1.125 0 01-.26 1.431l-1.003.827c-.293.24-.438.613-.431.992a6.759 6.759 0 010 .255c-.007.378.138.75.43.99l1.005.828c.424.35.534.954.26 1.43l-1.298 2.247a1.125 1.125 0 01-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.57 6.57 0 01-.22.128c-.331.183-.581.495-.644.869l-.213 1.28c-.09.543-.56.941-1.11.941h-2.594c-.55 0-1.02-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 01-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 01-1.369-.49l-1.297-2.247a1.125 1.125 0 01.26-1.431l1.004-.827c.292-.24.437-.613.43-.992a6.932 6.932 0 010-.255c.007-.378-.138-.75-.43-.99l-1.004-.828a1.125 1.125 0 01-.26-1.43l1.297-2.247a1.125 1.125 0 011.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.087.22-.128.332-.183.582-.495.644-.869l.214-1.281z"/>
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+            </svg>
+            Settings
+        </a>
+
+    </nav>
+
+    <!-- Bottom: theme toggle + user -->
+    <div class="shrink-0 border-t border-border px-3 py-3 space-y-2">
+
+        <!-- Dark mode toggle -->
+        <button id="theme-toggle" type="button"
+                class="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium
+                   text-muted hover:text-foreground hover:bg-background transition-colors">
+            <svg id="icon-moon" class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                      d="M21.752 15.002A9.718 9.718 0 0118 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 003 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 009.002-5.998z"/>
+            </svg>
+            <svg id="icon-sun" class="hidden h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                      d="M12 3v2.25m6.364.386l-1.591 1.591M21 12h-2.25m-.386 6.364l-1.591-1.591M12 18.75V21m-4.773-4.227l-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0z"/>
+            </svg>
+            <span id="theme-label">Dark mode</span>
+        </button>
+
+        <!-- User / sign out -->
+        <div class="flex items-center justify-between px-3 py-2">
+            <div class="flex items-center gap-2.5 min-w-0">
+                <div class="h-7 w-7 rounded-full bg-primary/15 flex items-center justify-center shrink-0">
+          <span class="text-xs font-semibold text-primary"
+                th:text="${#authentication?.name != null} ? ${#strings.toUpperCase(#strings.substring(#authentication.name, 0, 1))} : 'U'">U</span>
+                </div>
+                <span class="text-sm font-medium text-foreground truncate"
+                      th:text="${#authentication?.name} ?: 'User'">User</span>
+            </div>
+            <form th:action="@{/logout}" method="post" class="shrink-0">
+                <button type="submit"
+                        class="p-1.5 rounded-lg text-muted hover:text-danger hover:bg-danger/10 transition-colors"
+                        aria-label="Sign out" title="Sign out">
+                    <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                              d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9"/>
+                    </svg>
+                </button>
+            </form>
+        </div>
+
+    </div>
+
+</aside>
+
+</body>
+</html>

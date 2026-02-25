@@ -1,0 +1,9 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/tessera
+    username: tessera
+    password: tessera
+tessera:
+  user: admin
+  password: admin
+  salt: "YWJjZGVmZ2hpamtsbW5vcHFyc3R1dnd4eXoxMjM0NTY="

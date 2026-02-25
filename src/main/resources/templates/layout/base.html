@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<!--
+  Reusable <head> fragment.
+  Usage:  <head th:replace="~{layout/base :: head(title='Dashboard')}"></head>
+-->
+
+<head th:fragment="head(title)">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title th:text="${title} + ' — Tessera'">Tessera</title>
+  <link rel="stylesheet" th:href="@{/css/main.css}">
+</head>
+
+</html>

@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<th:block th:fragment="content">
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+
+        <div class="bg-surface border border-border rounded-xl p-5">
+            <p class="text-xs font-medium text-muted uppercase tracking-wide">Sources</p>
+            <p class="mt-1 text-2xl font-semibold text-foreground" th:text="${sourcesCount} ?: '—'">—</p>
+        </div>
+
+        <div class="bg-surface border border-border rounded-xl p-5">
+            <p class="text-xs font-medium text-muted uppercase tracking-wide">H3 Cells Indexed</p>
+            <p class="mt-1 text-2xl font-semibold text-foreground" th:text="${cellsIndexed} ?: '—'">—</p>
+        </div>
+
+        <div class="bg-surface border border-border rounded-xl p-5">
+            <p class="text-xs font-medium text-muted uppercase tracking-wide">Active Streams</p>
+            <p class="mt-1 text-2xl font-semibold text-accent" th:text="${activeStreams} ?: '—'">—</p>
+        </div>
+
+        <div class="bg-surface border border-border rounded-xl p-5">
+            <p class="text-xs font-medium text-muted uppercase tracking-wide">Queries / min</p>
+            <p class="mt-1 text-2xl font-semibold text-foreground" th:text="${queriesPerMin} ?: '—'">—</p>
+        </div>
+
+    </div>
+
+    <div class="bg-surface border border-border rounded-xl p-6">
+        <h2 class="text-lg font-semibold text-foreground mb-2">Map View</h2>
+        <div class="aspect-video bg-background rounded-lg border border-border flex items-center justify-center text-muted text-sm">
+            Map component goes here
+        </div>
+    </div>
+
+</th:block>
+
+</body>
+</html>

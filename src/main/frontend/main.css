@@ -1,0 +1,219 @@
+@import "tailwindcss" source(none);
+
+/* Explicitly scan Thymeleaf templates (relative to this CSS file) */
+@source "../resources/templates";
+
+/*
+ * Tessera — Design Tokens
+ *
+ * Usage:
+ *   Light mode (default): bg-background, text-foreground, etc.
+ *   Dark mode (auto):     Swap via .dark class or prefers-color-scheme.
+ *
+ *   Accent examples:
+ *     bg-primary text-primary-foreground
+ *     bg-accent text-accent-foreground
+ *     border-border
+ *     text-muted
+ */
+
+@layer base {
+    :root {
+        /* --- Surfaces --- */
+        --color-background: #F6F5F2;
+        --color-surface: #FFFFFF;
+        --color-elevated: #FFFFFF;
+
+        /* --- Text --- */
+        --color-foreground: #1A1A1A;
+        --color-muted: #6B6B6B;
+
+        /* --- Brand --- */
+        --color-primary: #2B5D4F;
+        --color-primary-hover: #234D42;
+        --color-primary-foreground: #FFFFFF;
+
+        --color-accent: #D4785C;
+        --color-accent-hover: #C46A4E;
+        --color-accent-foreground: #FFFFFF;
+
+        /* --- Semantic --- */
+        --color-danger: #C94F4F;
+        --color-danger-hover: #B54444;
+        --color-danger-foreground: #FFFFFF;
+
+        --color-success: #3A8A6A;
+        --color-success-foreground: #FFFFFF;
+
+        --color-warning: #D4965C;
+        --color-warning-foreground: #1A1A1A;
+
+        --color-info: #4A7A9B;
+        --color-info-foreground: #FFFFFF;
+
+        /* --- Borders & Dividers --- */
+        --color-border: #E0DED8;
+        --color-border-strong: #C8C5BD;
+
+        /* --- Interactive --- */
+        --color-ring: #2B5D4F;
+        --color-input: #E0DED8;
+        --color-input-hover: #D1CFC8;
+        --color-placeholder: #9A9A9A;
+
+        /* --- Overlay --- */
+        --color-overlay: rgba(26, 26, 26, 0.4);
+
+        /* --- Radius --- */
+        --radius-sm: 0.375rem;
+        --radius-md: 0.5rem;
+        --radius-lg: 0.75rem;
+        --radius-xl: 1rem;
+        --radius-2xl: 1.25rem;
+        --radius-full: 9999px;
+    }
+
+    .dark {
+        /* --- Surfaces --- */
+        --color-background: #121214;
+        --color-surface: #1C1C1F;
+        --color-elevated: #242428;
+
+        /* --- Text --- */
+        --color-foreground: #F0EFEC;
+        --color-muted: #8A8A8E;
+
+        /* --- Brand --- */
+        --color-primary: #6ABFA3;
+        --color-primary-hover: #7DCDB2;
+        --color-primary-foreground: #121214;
+
+        --color-accent: #E8956E;
+        --color-accent-hover: #EDA580;
+        --color-accent-foreground: #121214;
+
+        /* --- Semantic --- */
+        --color-danger: #E06B6B;
+        --color-danger-hover: #E88080;
+        --color-danger-foreground: #121214;
+
+        --color-success: #5BBF96;
+        --color-success-foreground: #121214;
+
+        --color-warning: #E8A86E;
+        --color-warning-foreground: #121214;
+
+        --color-info: #6AABCF;
+        --color-info-foreground: #121214;
+
+        /* --- Borders & Dividers --- */
+        --color-border: #2A2A2E;
+        --color-border-strong: #3A3A3F;
+
+        /* --- Interactive --- */
+        --color-ring: #6ABFA3;
+        --color-input: #2A2A2E;
+        --color-input-hover: #33333A;
+        --color-placeholder: #5C5C60;
+
+        /* --- Overlay --- */
+        --color-overlay: rgba(0, 0, 0, 0.6);
+    }
+}
+
+/* --------------------------------------------------------
+ * Map CSS variables to Tailwind theme via @theme inline
+ * This enables: bg-primary, text-muted, border-border, etc.
+ * -------------------------------------------------------- */
+
+@theme inline {
+    --color-background: var(--color-background);
+    --color-surface: var(--color-surface);
+    --color-elevated: var(--color-elevated);
+
+    --color-foreground: var(--color-foreground);
+    --color-muted: var(--color-muted);
+
+    --color-primary: var(--color-primary);
+    --color-primary-hover: var(--color-primary-hover);
+    --color-primary-foreground: var(--color-primary-foreground);
+
+    --color-accent: var(--color-accent);
+    --color-accent-hover: var(--color-accent-hover);
+    --color-accent-foreground: var(--color-accent-foreground);
+
+    --color-danger: var(--color-danger);
+    --color-danger-hover: var(--color-danger-hover);
+    --color-danger-foreground: var(--color-danger-foreground);
+
+    --color-success: var(--color-success);
+    --color-success-foreground: var(--color-success-foreground);
+
+    --color-warning: var(--color-warning);
+    --color-warning-foreground: var(--color-warning-foreground);
+
+    --color-info: var(--color-info);
+    --color-info-foreground: var(--color-info-foreground);
+
+    --color-border: var(--color-border);
+    --color-border-strong: var(--color-border-strong);
+
+    --color-ring: var(--color-ring);
+    --color-input: var(--color-input);
+    --color-input-hover: var(--color-input-hover);
+    --color-placeholder: var(--color-placeholder);
+
+    --color-overlay: var(--color-overlay);
+
+    --radius-sm: var(--radius-sm);
+    --radius-md: var(--radius-md);
+    --radius-lg: var(--radius-lg);
+    --radius-xl: var(--radius-xl);
+    --radius-2xl: var(--radius-2xl);
+    --radius-full: var(--radius-full);
+}
+
+/* --------------------------------------------------------
+ * Base resets
+ * -------------------------------------------------------- */
+
+@layer base {
+    body {
+        @apply bg-background text-foreground antialiased;
+    }
+
+    /* Respect system preference when no .dark class */
+    @media (prefers-color-scheme: dark) {
+        :root:not(.light) {
+            /* --- Surfaces --- */
+            --color-background: #121214;
+            --color-surface: #1C1C1F;
+            --color-elevated: #242428;
+            --color-foreground: #F0EFEC;
+            --color-muted: #8A8A8E;
+            --color-primary: #6ABFA3;
+            --color-primary-hover: #7DCDB2;
+            --color-primary-foreground: #121214;
+            --color-accent: #E8956E;
+            --color-accent-hover: #EDA580;
+            --color-accent-foreground: #121214;
+            --color-danger: #E06B6B;
+            --color-danger-hover: #E88080;
+            --color-danger-foreground: #121214;
+            --color-success: #5BBF96;
+            --color-success-foreground: #121214;
+            --color-warning: #E8A86E;
+            --color-warning-foreground: #121214;
+            --color-info: #6AABCF;
+            --color-info-foreground: #121214;
+            --color-border: #2A2A2E;
+            --color-border-strong: #3A3A3F;
+            --color-ring: #6ABFA3;
+            --color-input: #2A2A2E;
+            --color-input-hover: #33333A;
+            --color-placeholder: #5C5C60;
+            --color-overlay: rgba(0, 0, 0, 0.6);
+        }
+    }
+}
+

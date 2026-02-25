@@ -1,0 +1,61 @@
+spring:
+  application:
+    name: tessera
+
+  datasource:
+    url: ${JDBC_URL}
+    username: ${JDBC_DATABASE_USERNAME}
+    password: ${JDBC_DATABASE_PASSWORD}
+    hikari:
+      pool-name: internal-postgis-pool
+      maximum-pool-size: 32
+      minimum-idle: 4
+      connection-timeout: 3000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+      connection-init-sql: "SET search_path TO tessra,partman,public"  # fixed: was geodata
+      data-source-properties:
+        reWriteBatchedInserts: true
+        assumeMinServerVersion: 16
+        tcpKeepAlive: true
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  server:
+    port: ${MANAGEMENT_PORT:8081}
+
+
+tessera:
+  crypto:
+    salt: "YWJjZGVmZ2hpamtsbW5vcHFyc3R1dnd4eXoxMjM0NTY="
+
+  h3:
+    resolutions: [ 3, 5, 7, 9, 11 ]
+    batch-size: 10000
+    compaction-enabled: true
+
+  sync:
+    polling-interval-ms: 5000
+    batch-size: 5000
+    cdc-enabled: true
+    checkpoint-interval-ms: 10000
+
+  catalog:
+    cache-ttl-seconds: 300
+
+  tags:
+    h3:
+      version: "@h3Version@"
+    jts:
+      version: "@jtsVersion@"
+
+server:
+  servlet:
+    context-path: /tessera
+  port: ${PORT:8080}
+logging:
+  level:
+    root: error
+    live.omnisource.tessera: debug

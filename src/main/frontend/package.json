@@ -1,0 +1,14 @@
+{
+  "name": "frontend",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "build": "npx @tailwindcss/cli -c ./tailwind.config.cjs -i ./main.css -o ../resources/static/css/main.css --minify",
+    "dev": "npx @tailwindcss/cli -c ./tailwind.config.cjs -i ./main.css -o ../resources/static/css/main.css --watch"
+  },
+  "description": "",
+  "devDependencies": {
+    "@tailwindcss/cli": "^4.2.0",
+    "tailwindcss": "^4.2.0"
+  }
+}
