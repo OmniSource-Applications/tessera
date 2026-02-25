@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<th:block th:fragment="content">
+
+    <!-- Flash messages -->
+    <div th:if="${success}"
+         class="mb-6 rounded-lg bg-success/10 border border-success/20 px-4 py-3 text-sm text-success">
+        <span th:text="${success}">Success</span>
+    </div>
+    <div th:if="${error}"
+         class="mb-6 rounded-lg bg-danger/10 border border-danger/20 px-4 py-3 text-sm text-danger">
+        <span th:text="${error}">Error</span>
+    </div>
+
+    <!-- Create workspace -->
+    <div class="bg-surface border border-border rounded-xl p-6 mb-8">
+        <h2 class="text-lg font-semibold text-foreground mb-4">New Workspace</h2>
+        <form th:action="@{/workspaces}" method="post" class="flex items-end gap-3">
+            <div class="flex-1">
+                <label for="name" class="block text-sm font-medium text-foreground mb-1.5">Name</label>
+                <input id="name" type="text" name="name" required
+                       placeholder="my-workspace"
+                       pattern="[a-zA-Z0-9][a-zA-Z0-9_-]{0,63}"
+                       title="Letters, numbers, hyphens, underscores. Must start with a letter or number."
+                       class="w-full rounded-lg border border-input bg-background px-3.5 py-2.5 text-sm text-foreground
+                      placeholder:text-placeholder
+                      focus:outline-none focus:ring-2 focus:ring-ring/40 focus:border-primary
+                      hover:border-input-hover transition-colors"/>
+            </div>
+            <button type="submit"
+                    class="rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground
+                     hover:bg-primary-hover active:scale-[0.98]
+                     focus:outline-none focus:ring-2 focus:ring-ring/40
+                     transition-all">
+                Create
+            </button>
+        </form>
+    </div>
+
+    <!-- Workspace list -->
+    <div class="bg-surface border border-border rounded-xl overflow-hidden">
+
+        <!-- Empty state -->
+        <div th:if="${#lists.isEmpty(workspaces)}"
+             class="px-6 py-12 text-center">
+            <svg class="mx-auto h-10 w-10 text-muted mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                      d="M3.75 3.75h6.5v7.5h-6.5zM13.75 3.75h6.5v4.5h-6.5zM13.75 11.25h6.5v9h-6.5zM3.75 14.25h6.5v6h-6.5z"/>
+            </svg>
+            <p class="text-sm text-muted">No workspaces yet. Create one above to get started.</p>
+        </div>
+
+        <!-- Table -->
+        <table th:if="${!#lists.isEmpty(workspaces)}" class="w-full text-sm text-left">
+            <thead class="border-b border-border">
+            <tr>
+                <th class="px-6 py-3 font-medium text-muted uppercase tracking-wide text-xs">Name</th>
+                <th class="px-6 py-3 font-medium text-muted uppercase tracking-wide text-xs text-right">Actions</th>
+            </tr>
+            </thead>
+            <tbody class="divide-y divide-border">
+            <tr th:each="ws : ${workspaces}"
+                class="hover:bg-background/50 transition-colors">
+                <td class="px-6 py-4">
+                    <a th:href="@{/workspaces/{name}(name=${ws})}"
+                       th:text="${ws}"
+                       class="font-medium text-foreground hover:text-primary transition-colors">
+                        workspace-name
+                    </a>
+                </td>
+                <td class="px-6 py-4 text-right">
+                    <form th:action="@{/workspaces/{name}/delete(name=${ws})}" method="post"
+                          class="inline"
+                          onsubmit="return confirm('Delete workspace \'' + this.dataset.name + '\'?');"
+                          th:attr="data-name=${ws}">
+                        <button type="submit"
+                                class="rounded-lg px-3 py-1.5 text-xs font-medium
+                             text-danger hover:bg-danger/10 transition-colors">
+                            Delete
+                        </button>
+                    </form>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+
+    </div>
+
+</th:block>
+
+</body>
+</html>

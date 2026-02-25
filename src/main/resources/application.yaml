@@ -1,6 +1,7 @@
 spring:
   application:
     name: tessera
+    version: "@appVersion@"
 
   datasource:
     url: ${JDBC_URL}
@@ -18,11 +19,35 @@ spring:
         reWriteBatchedInserts: true
         assumeMinServerVersion: 16
         tcpKeepAlive: true
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        dialect: org.hibernate.spatial.dialect.postgis.PostgisPG10Dialect
+        default_schema: tessera
+        jdbc:
+          batch_size: 1000
+          order_inserts: true
+          order_updates: true
+        generate_statistics: false
+
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    baseline-on-migrate: false
+    schemas: tessera
+
+
+  threads:
+    virtual:
+      enabled: true
 management:
   endpoints:
     web:
       exposure:
         include: health,info,metrics,prometheus
+
   server:
     port: ${MANAGEMENT_PORT:8081}
 
@@ -44,6 +69,11 @@ tessera:
 
   catalog:
     cache-ttl-seconds: 300
+
+  connectors:
+    cassandra:
+      sessions-max: ${CASSANDRA_SESSIONS_MAX:10}
+      expiration-minutes: ${CASSANDRA_SESSIONS_EXPIRATION_MINUTES:30}
 
   tags:
     h3:

@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<th:block th:fragment="content">
+
+    <!-- Breadcrumb -->
+    <nav class="mb-6 text-sm text-muted">
+        <a th:href="@{/workspaces}" class="hover:text-foreground transition-colors">Workspaces</a>
+        <span class="mx-1.5">/</span>
+        <a th:href="@{/workspaces/{ws}(ws=${workspace})}"
+           th:text="${workspace}"
+           class="hover:text-foreground transition-colors">workspace</a>
+        <span class="mx-1.5">/</span>
+        <span class="text-foreground font-medium" th:text="${datastore.datastore().datastore()}">datastore</span>
+    </nav>
+
+    <!-- Connection Info Card -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
+
+        <div class="bg-surface border border-border rounded-xl p-5">
+            <p class="text-xs font-medium text-muted uppercase tracking-wide">Type</p>
+            <p class="mt-1 text-lg font-semibold text-foreground" th:text="${datastore.type()}">POSTGIS</p>
+        </div>
+
+        <div class="bg-surface border border-border rounded-xl p-5" th:if="${datastore.url() != null}">
+            <p class="text-xs font-medium text-muted uppercase tracking-wide">URL</p>
+            <p class="mt-1 text-sm font-medium text-foreground truncate" th:text="${datastore.url()}" th:title="${datastore.url()}">jdbc:...</p>
+        </div>
+
+        <div class="bg-surface border border-border rounded-xl p-5" th:if="${datastore.contactPoints() != null}">
+            <p class="text-xs font-medium text-muted uppercase tracking-wide">Contact Points</p>
+            <p class="mt-1 text-sm font-medium text-foreground truncate" th:text="${datastore.contactPoints()}">node1</p>
+        </div>
+
+        <div class="bg-surface border border-border rounded-xl p-5" th:if="${datastore.port() != 0}">
+            <p class="text-xs font-medium text-muted uppercase tracking-wide">Port</p>
+            <p class="mt-1 text-lg font-semibold text-foreground" th:text="${datastore.port()}">9042</p>
+        </div>
+
+        <div class="bg-surface border border-border rounded-xl p-5" th:if="${datastore.datacenter() != null}">
+            <p class="text-xs font-medium text-muted uppercase tracking-wide">Datacenter</p>
+            <p class="mt-1 text-sm font-medium text-foreground" th:text="${datastore.datacenter()}">dc1</p>
+        </div>
+
+        <div class="bg-surface border border-border rounded-xl p-5" th:if="${datastore.keyspace() != null}">
+            <p class="text-xs font-medium text-muted uppercase tracking-wide">Keyspace</p>
+            <p class="mt-1 text-sm font-medium text-foreground" th:text="${datastore.keyspace()}">ks</p>
+        </div>
+
+        <div class="bg-surface border border-border rounded-xl p-5" th:if="${datastore.hosts() != null}">
+            <p class="text-xs font-medium text-muted uppercase tracking-wide">Hosts</p>
+            <p class="mt-1 text-sm font-medium text-foreground truncate" th:text="${datastore.hosts()}">https://...</p>
+        </div>
+
+        <div class="bg-surface border border-border rounded-xl p-5" th:if="${datastore.poolSize() > 0}">
+            <p class="text-xs font-medium text-muted uppercase tracking-wide">Pool Size</p>
+            <p class="mt-1 text-lg font-semibold text-foreground" th:text="${datastore.poolSize()}">8</p>
+        </div>
+
+        <div class="bg-surface border border-border rounded-xl p-5" th:if="${datastore.type() == 'ELASTICSEARCH'}">
+            <p class="text-xs font-medium text-muted uppercase tracking-wide">Verify SSL</p>
+            <p class="mt-1 text-lg font-semibold"
+               th:classappend="${datastore.verifySsl()} ? 'text-success' : 'text-danger'"
+               th:text="${datastore.verifySsl()} ? 'Yes' : 'No'">Yes</p>
+        </div>
+
+    </div>
+
+    <!-- Placeholder for future drill-down: layers, schemas, etc. -->
+    <div class="bg-surface border border-border rounded-xl p-6">
+        <h2 class="text-lg font-semibold text-foreground mb-2">Layers</h2>
+        <div class="py-8 text-center">
+            <svg class="mx-auto h-10 w-10 text-muted mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                      d="M12 2.25L2.25 9 12 15.75 21.75 9zM2.25 15l9.75 6.75L21.75 15M2.25 12l9.75 6.75L21.75 12"/>
+            </svg>
+            <p class="text-sm text-muted">Layer management coming soon.</p>
+        </div>
+    </div>
+
+</th:block>
+
+</body>
+</html>

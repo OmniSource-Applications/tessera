@@ -5,7 +5,6 @@ import java.util.Optional;
 
 public record WorkspaceRecord(
         String name,
-        Optional<List<String>> layers,
         Optional<List<String>> dataSources
 ) {
 }

@@ -14,6 +14,16 @@ group = 'live.omnisource'
 version = (gitTagVersion() ?: findProperty("appVersion") ?: "0.0.0-dev")
 description = 'tessera'
 
+ext {
+    h3Version = findProperty("h3Version") ?: "4.4.0"
+    jtsVersion = findProperty("jtsVersion") ?: "1.20.0"
+    cassandraDriverVersion = '4.19.2'
+    elasticsearchVersion = '8.16.0'
+    flywayVersion        = '11.1.0'
+    oraDependencyVersion = '23.6.0.24.10'
+    postgisJdbcVersion   = '2023.1.0'
+}
+
 java {
     toolchain {
         languageVersion = JavaLanguageVersion.of(25)
@@ -33,7 +43,6 @@ repositories {
 dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
     implementation 'org.springframework.boot:spring-boot-starter-batch-jdbc'
-//    implementation 'org.springframework.boot:spring-boot-starter-cassandra'
     implementation 'org.springframework.boot:spring-boot-starter-data-jdbc'
 //    implementation 'org.springframework.boot:spring-boot-starter-elasticsearch'
     implementation 'org.springframework.boot:spring-boot-starter-flyway'
@@ -41,14 +50,31 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
     implementation 'org.springframework.boot:spring-boot-starter-validation'
     implementation 'org.springframework.boot:spring-boot-starter-webmvc'
+    implementation 'com.zaxxer:HikariCP:6.2.1'
+    implementation 'com.google.guava:guava:33.4.0-jre'
+    implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
     implementation 'org.flywaydb:flyway-database-postgresql'
     implementation 'org.thymeleaf.extras:thymeleaf-extras-springsecurity6'
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+
+    implementation "com.uber:h3:${h3Version}"
+    implementation "org.locationtech.jts:jts-core:${jtsVersion}"
+    implementation "org.locationtech.jts.io:jts-io-common:${jtsVersion}"
+    implementation 'org.hibernate.orm:hibernate-spatial'
+
+    // Cassandra
+    implementation "org.apache.cassandra:java-driver-core:${cassandraDriverVersion}"
+    implementation "org.apache.cassandra:java-driver-query-builder:${cassandraDriverVersion}"
+    implementation "org.apache.cassandra:java-driver-mapper-runtime:${cassandraDriverVersion}"
+
     compileOnly 'org.projectlombok:lombok'
     developmentOnly 'org.springframework.boot:spring-boot-devtools'
 //    runtimeOnly 'com.mysql:mysql-connector-j'
 //    runtimeOnly 'com.oracle.database.jdbc:ojdbc11'
     runtimeOnly 'org.postgresql:postgresql'
     annotationProcessor 'org.projectlombok:lombok'
+    annotationProcessor 'org.mapstruct:mapstruct-processor:1.6.3'
+    annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
     testImplementation 'org.springframework.boot:spring-boot-starter-actuator-test'
     testImplementation 'org.springframework.boot:spring-boot-starter-batch-jdbc-test'
     testImplementation 'org.springframework.boot:spring-boot-starter-cassandra-test'
@@ -137,13 +163,13 @@ tasks.named("processResources") {
     dependsOn "npmBuild"
 }
 
-//tasks.named("processResources") {
-//    filteringCharset = StandardCharsets.UTF_8.name()
-//    filesMatching(["**/application.yml", "**/application.yaml"]) {
-//        filter(ReplaceTokens, tokens: [
-//                appVersion: project.version.toString(),
-//                h3Version : project.ext.h3Version.toString(),
-//                jtsVersion : project.ext.jtsVersion.toString()
-//        ])
-//    }
-//}
+tasks.named("processResources") {
+    filteringCharset = StandardCharsets.UTF_8.name()
+    filesMatching(["**/application.yml", "**/application.yaml"]) {
+        filter(ReplaceTokens, tokens: [
+                appVersion: project.version.toString(),
+                h3Version : project.ext.h3Version.toString(),
+                jtsVersion : project.ext.jtsVersion.toString()
+        ])
+    }
+}
