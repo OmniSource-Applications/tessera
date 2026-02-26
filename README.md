@@ -38,7 +38,12 @@ TODO: User Guide
 
 ---
 
-TODO: Build Guide
+Tessera requires a specific configuration of PostgreSQL + postgis with pg-h3 and partman installed. A dockerfile 
+located in `ops/tessera/postgres` is available for example use and development.
+
+To develop with Tessera, currently there is a docker-compose structure found in `ops/tessera` to build the application
+and the database. There is an additional `ops/demo_postgres` that can be used for testing connections. Future development
+plans for using devcontianers.
 
 ## Contributing
 
