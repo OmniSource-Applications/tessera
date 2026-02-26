@@ -1,12 +1,14 @@
 spring:
+  profiles:
+    active: ${PROFILE:dev}
   application:
     name: tessera
     version: "@appVersion@"
 
   datasource:
-    url: ${JDBC_URL}
-    username: ${JDBC_DATABASE_USERNAME}
-    password: ${JDBC_DATABASE_PASSWORD}
+    url: jdbc:postgresql://localhost:5438/${POSTGRES_DB}
+    username: ${POSTGRES_USER}
+    password: ${POSTGRES_PASSWORD}
     hikari:
       pool-name: internal-postgis-pool
       maximum-pool-size: 32
