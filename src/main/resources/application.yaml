@@ -16,7 +16,7 @@ spring:
       connection-timeout: 3000
       idle-timeout: 600000
       max-lifetime: 1800000
-      connection-init-sql: "SET search_path TO tessra,partman,public"  # fixed: was geodata
+      connection-init-sql: "SET search_path TO tessra,partman,public"
       data-source-properties:
         reWriteBatchedInserts: true
         assumeMinServerVersion: 16
