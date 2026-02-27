@@ -6,8 +6,12 @@ import com.datastax.oss.driver.api.core.cql.Row;
 import com.datastax.oss.driver.api.core.cql.SimpleStatement;
 import live.omnisource.tessera.datasource.ExternalDataSourceFactory;
 import live.omnisource.tessera.datasource.connector.cassandra.CassandraSessionFactory;
+import live.omnisource.tessera.datasource.introspection.CassandraIntrospector;
 import live.omnisource.tessera.exceptions.CassandraSessionTestException;
+import live.omnisource.tessera.exceptions.DataStoreNotFoundException;
+import live.omnisource.tessera.exceptions.DataStoreValidationException;
 import live.omnisource.tessera.filestore.crypto.SecureFileStore;
+import live.omnisource.tessera.layer.dto.IntrospectionResult;
 import live.omnisource.tessera.model.dto.ColumnMetadata;
 import live.omnisource.tessera.model.dto.ExternalSourceCredentials;
 import live.omnisource.tessera.model.dto.RawRecord;
@@ -16,6 +20,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import tools.jackson.databind.ObjectMapper;
 
+import java.io.IOException;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Set;
@@ -145,6 +150,14 @@ public final class CassandraConnector implements DataSourceConnector {
                 });
     }
 
+    @Override
+    public IntrospectionResult introspect(String secretRefKey) {
+        try (CqlSession session = sessionFor(secretRefKey)) {
+            String keyspace = loadCredentials(secretRefKey).keyspace();
+            return CassandraIntrospector.introspect(session, keyspace);
+        }
+    }
+
     private CqlSession sessionFor(String secretRefKey) {
         return sessionFactory.sessionFor(secretRefKey);
     }
@@ -164,5 +177,13 @@ public final class CassandraConnector implements DataSourceConnector {
                 lowerType.contains("polygon");
 
         return nameHint || typeHint;
+    }
+
+    private ExternalSourceCredentials loadCredentials(String secretRefKey) {
+        byte[] json = secureFileStore.get(secretRefKey);
+        if (json == null) {
+            throw new DataStoreNotFoundException("No credentials found for: " + secretRefKey);
+        }
+        return objectMapper.readValue(json, ExternalSourceCredentials.class);
     }
 }

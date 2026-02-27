@@ -4,7 +4,9 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import live.omnisource.tessera.datasource.ExternalDataSourceFactory;
 import live.omnisource.tessera.datasource.ResultSetSpliterator;
+import live.omnisource.tessera.datasource.introspection.PostgisIntrospector;
 import live.omnisource.tessera.filestore.crypto.SecureFileStore;
+import live.omnisource.tessera.layer.dto.IntrospectionResult;
 import live.omnisource.tessera.model.dto.ColumnMetadata;
 import live.omnisource.tessera.model.dto.ExternalSourceCredentials;
 import live.omnisource.tessera.model.dto.RawRecord;
@@ -143,6 +145,11 @@ public final class PostGISConnector implements DataSourceConnector {
         } catch (SQLException e) {
             throw new RuntimeException("Failed to stream " + schema + "." + table, e);
         }
+    }
+
+    @Override
+    public IntrospectionResult introspect(String secretRefKey) {
+        return PostgisIntrospector.introspect(dataSource(secretRefKey));
     }
 
     private String buildSql(String schema, String table, StreamOptions opts) {

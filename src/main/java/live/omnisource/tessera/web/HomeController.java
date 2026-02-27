@@ -1,6 +1,7 @@
 package live.omnisource.tessera.web;
 
 import live.omnisource.tessera.datastore.DataStoreService;
+import live.omnisource.tessera.layer.LayerService;
 import live.omnisource.tessera.workspace.WorkspaceService;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -16,11 +17,13 @@ public class HomeController {
 
     private final WorkspaceService workspaceService;
     private final DataStoreService dataStoreService;
+    private final LayerService layerService;
 
     public HomeController(WorkspaceService workspaceService,
-                          DataStoreService dataStoreService) {
+                          DataStoreService dataStoreService, LayerService layerService) {
         this.workspaceService = workspaceService;
         this.dataStoreService = dataStoreService;
+        this.layerService = layerService;
     }
 
     @GetMapping("/")
@@ -30,14 +33,8 @@ public class HomeController {
         model.addAttribute("view", "home");
         model.addAttribute("workspacesCount", workspaceService.countWorkspaces());
         model.addAttribute("sourcesCount", dataStoreService.countAllDataStores());
-        return LAYOUT;
-    }
+        model.addAttribute("layersCount", layerService.countAllLayers());
 
-    @GetMapping("/layers")
-    public String layers(Model model) {
-        model.addAttribute(TITLE, "Layers");
-        model.addAttribute(DESCRIPTION, "Manage your data layers.");
-        model.addAttribute(VIEW, "layer");
         return LAYOUT;
     }
 
