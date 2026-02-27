@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<th:block th:fragment="content">
+
+    <!-- Sources table -->
+    <div class="bg-surface border border-border rounded-xl overflow-hidden">
+
+        <!-- Empty state -->
+        <div th:if="${layers == null || layers.isEmpty()}"
+             class="px-6 py-12 text-center">
+            <p class="text-sm text-muted mb-3">No layers configured yet.</p>
+            <a th:href="@{/workspaces}"
+               class="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground
+                hover:bg-primary-hover transition-colors">
+                Go to Workspaces
+            </a>
+        </div>
+
+        <!-- Table -->
+        <table th:if="${layers != null && !layers.isEmpty()}" class="w-full text-sm text-left">
+            <thead class="border-b border-border">
+            <tr>
+                <th class="px-6 py-3 font-medium text-muted uppercase tracking-wide text-xs">Layer</th>
+                <th class="px-6 py-3 font-medium text-muted uppercase tracking-wide text-xs">Source</th>
+                <th class="px-6 py-3 font-medium text-muted uppercase tracking-wide text-xs">Workspace</th>
+                <th class="px-6 py-3 font-medium text-muted uppercase tracking-wide text-xs text-right">Actions</th>
+            </tr>
+            </thead>
+            <tbody class="divide-y divide-border">
+            <tr th:each="src : ${layers}"
+                class="hover:bg-background/50 transition-colors">
+                <td class="px-6 py-4">
+                    <a th:href="@{/workspaces/{ws}/datastores/{ds}/layers/{ly}(ws=${src.workspace()}, ds=${src.datastore()}, ly=${src.layer()})}"
+                       th:text="${src.layer()}"
+                       class="font-medium text-foreground hover:text-primary transition-colors">
+                        source-name
+                    </a>
+                </td>
+                <td class="px-6 py-4">
+                    <a th:href="@{/workspaces/{ws}/datastores/{ds}(ws=${src.workspace()}, ds=${src.datastore()})}"
+                       th:text="${src.datastore()}"
+                       class="font-medium text-foreground hover:text-primary transition-colors">
+                        source-name
+                    </a>
+                </td>
+                <td class="px-6 py-4">
+                    <a th:href="@{/workspaces/{ws}(ws=${src.workspace()})}"
+                       th:text="${src.workspace()}"
+                       class="text-muted hover:text-foreground transition-colors">
+                        workspace-name
+                    </a>
+                </td>
+                <td class="px-6 py-4 text-right">
+                    <a th:href="@{/workspaces/{ws}/datastores/{ds}(ws=${src.workspace()}, ds=${src.datastore()})}"
+                       class="rounded-lg px-3 py-1.5 text-xs font-medium
+                      text-primary hover:bg-primary/10 transition-colors">
+                        View
+                    </a>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+
+    </div>
+
+</th:block>
+
+</body>
+</html>

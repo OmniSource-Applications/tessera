@@ -1,9 +1,14 @@
 package live.omnisource.tessera.datasource.connector;
 
+import live.omnisource.tessera.exceptions.DataStoreNotFoundException;
+import live.omnisource.tessera.exceptions.DataStoreValidationException;
+import live.omnisource.tessera.layer.dto.IntrospectionResult;
 import live.omnisource.tessera.model.dto.ExternalSourceCredentials;
 import live.omnisource.tessera.model.dto.RawRecord;
 import live.omnisource.tessera.model.dto.SchemaMetadata;
+import tools.jackson.databind.ObjectMapper;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.stream.Stream;
 
@@ -32,6 +37,8 @@ public sealed interface DataSourceConnector
      */
     Stream<RawRecord> streamTable(String secretRefKey, String schema,
                                   String table, StreamOptions options);
+
+    IntrospectionResult introspect(String secretRefKey);
 
     // ── Types ─────────────────────────────────────────────────────────────
 

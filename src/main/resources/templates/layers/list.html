@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<th:block th:fragment="content">
+
+    <!-- Breadcrumb -->
+    <nav class="mb-6 text-sm text-muted">
+        <a th:href="@{/workspaces}" class="hover:text-foreground transition-colors">Workspaces</a>
+        <span class="mx-1.5">/</span>
+        <a th:href="@{/workspaces/{ws}(ws=${workspace})}"
+           th:text="${workspace}" class="hover:text-foreground transition-colors">ws</a>
+        <span class="mx-1.5">/</span>
+        <a th:href="@{/workspaces/{ws}/datastores/{ds}(ws=${workspace}, ds=${datastore})}"
+           th:text="${datastore}" class="hover:text-foreground transition-colors">ds</a>
+        <span class="mx-1.5">/</span>
+        <span class="text-foreground font-medium">Layers</span>
+    </nav>
+
+    <!-- Flash messages -->
+    <div th:if="${success}"
+         class="mb-6 rounded-lg bg-success/10 border border-success/20 px-4 py-3 text-sm text-success">
+        <span th:text="${success}">Success</span>
+    </div>
+    <div th:if="${error}"
+         class="mb-6 rounded-lg bg-danger/10 border border-danger/20 px-4 py-3 text-sm text-danger">
+        <span th:text="${error}">Error</span>
+    </div>
+
+    <!-- ── Discovered Spatial Tables ─────────────────────── -->
+    <div class="bg-surface border border-border rounded-xl overflow-hidden mb-8">
+        <div class="px-6 py-4 border-b border-border flex items-center justify-between">
+            <h2 class="text-base font-semibold text-foreground">Discovered Spatial Tables</h2>
+            <a th:href="@{/workspaces/{ws}/datastores/{ds}/layers(ws=${workspace}, ds=${datastore})}"
+               class="text-xs font-medium text-primary hover:text-primary-hover transition-colors">
+                Re-scan
+            </a>
+        </div>
+
+        <!-- Introspection error -->
+        <div th:if="${introspectionError}"
+             class="px-6 py-8 text-center">
+            <p class="text-sm text-danger" th:text="'Introspection failed: ' + ${introspectionError}">error</p>
+        </div>
+
+        <!-- No tables found -->
+        <div th:if="${introspection != null && introspection.tables().isEmpty()}"
+             class="px-6 py-8 text-center">
+            <p class="text-sm text-muted">No spatial tables found in this data source.</p>
+        </div>
+
+        <!-- Table list -->
+        <table th:if="${introspection != null && !introspection.tables().isEmpty()}"
+               class="w-full text-sm text-left">
+            <thead class="border-b border-border">
+            <tr>
+                <th class="px-6 py-3 font-medium text-muted uppercase tracking-wide text-xs">Table</th>
+                <th class="px-6 py-3 font-medium text-muted uppercase tracking-wide text-xs">Geometry</th>
+                <th class="px-6 py-3 font-medium text-muted uppercase tracking-wide text-xs">SRID</th>
+                <th class="px-6 py-3 font-medium text-muted uppercase tracking-wide text-xs text-right">Rows</th>
+                <th class="px-6 py-3 font-medium text-muted uppercase tracking-wide text-xs text-right">Action</th>
+            </tr>
+            </thead>
+            <tbody class="divide-y divide-border">
+            <tr th:each="tbl : ${introspection.tables()}"
+                class="hover:bg-background/50 transition-colors">
+                <td class="px-6 py-4">
+                    <span class="font-medium text-foreground" th:text="${tbl.qualifiedName()}">public.table</span>
+                    <span class="ml-2 text-xs text-muted" th:text="'(' + ${tbl.geometryColumn()} + ')'">geom</span>
+                </td>
+                <td class="px-6 py-4">
+            <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium"
+                  th:classappend="${tbl.geometryType().contains('POINT')} ? 'bg-info/10 text-info' :
+                                  (${tbl.geometryType().contains('LINE')} ? 'bg-warning/10 text-warning' :
+                                  (${tbl.geometryType().contains('POLYGON')} ? 'bg-success/10 text-success' :
+                                   'bg-primary/10 text-primary'))"
+                  th:text="${tbl.geometryType()}">POINT</span>
+                </td>
+                <td class="px-6 py-4 text-muted" th:text="${tbl.srid()}">4326</td>
+                <td class="px-6 py-4 text-right text-muted"
+                    th:text="${tbl.rowCount() >= 0} ? ${#numbers.formatInteger(tbl.rowCount(), 1, 'COMMA')} : '—'">0</td>
+                <td class="px-6 py-4 text-right">
+                    <form th:action="@{/workspaces/{ws}/datastores/{ds}/layers(ws=${workspace}, ds=${datastore})}"
+                          method="post" class="inline">
+                        <input type="hidden" name="sourceSchema"   th:value="${tbl.schema()}"/>
+                        <input type="hidden" name="sourceTable"    th:value="${tbl.table()}"/>
+                        <input type="hidden" name="geometryColumn" th:value="${tbl.geometryColumn()}"/>
+                        <input type="hidden" name="geometryType"   th:value="${tbl.geometryType()}"/>
+                        <input type="hidden" name="srid"           th:value="${tbl.srid()}"/>
+                        <input type="hidden" name="rowCount"       th:value="${tbl.rowCount()}"/>
+                        <input type="hidden" name="extent"
+                               th:value="${tbl.extent() != null} ?
+                       ${tbl.extent()[0] + ',' + tbl.extent()[1] + ',' + tbl.extent()[2] + ',' + tbl.extent()[3]} : ''"/>
+                        <!-- Default layer name to table name -->
+                        <input type="hidden" name="name" th:value="${tbl.table()}"/>
+                        <button type="submit"
+                                class="rounded-lg px-3 py-1.5 text-xs font-medium
+                             text-primary hover:bg-primary/10 transition-colors">
+                            Add Layer
+                        </button>
+                    </form>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- ── Existing Layers ───────────────────────────────── -->
+    <div class="bg-surface border border-border rounded-xl overflow-hidden">
+        <div class="px-6 py-4 border-b border-border">
+            <h2 class="text-base font-semibold text-foreground">Layers</h2>
+        </div>
+
+        <!-- Empty -->
+        <div th:if="${layers == null || layers.isEmpty()}"
+             class="px-6 py-12 text-center">
+            <svg class="mx-auto h-10 w-10 text-muted mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                      d="M12 2.25L2.25 9 12 15.75 21.75 9zM2.25 15l9.75 6.75L21.75 15M2.25 12l9.75 6.75L21.75 12"/>
+            </svg>
+            <p class="text-sm text-muted">No layers created yet. Add one from the discovered tables above.</p>
+        </div>
+
+        <!-- Table -->
+        <table th:if="${layers != null && !layers.isEmpty()}" class="w-full text-sm text-left">
+            <thead class="border-b border-border">
+            <tr>
+                <th class="px-6 py-3 font-medium text-muted uppercase tracking-wide text-xs">Layer</th>
+                <th class="px-6 py-3 font-medium text-muted uppercase tracking-wide text-xs text-right">Actions</th>
+            </tr>
+            </thead>
+            <tbody class="divide-y divide-border">
+            <tr th:each="l : ${layers}"
+                class="hover:bg-background/50 transition-colors">
+                <td class="px-6 py-4">
+                    <a th:href="@{/workspaces/{ws}/datastores/{ds}/layers/{l}(ws=${workspace}, ds=${datastore}, l=${l})}"
+                       th:text="${l}"
+                       class="font-medium text-foreground hover:text-primary transition-colors">
+                        layer-name
+                    </a>
+                </td>
+                <td class="px-6 py-4 text-right">
+                    <form th:action="@{/workspaces/{ws}/datastores/{ds}/layers/{l}/delete(ws=${workspace}, ds=${datastore}, l=${l})}"
+                          method="post" class="inline"
+                          onsubmit="return confirm('Delete layer \'' + this.dataset.name + '\'?');"
+                          th:attr="data-name=${l}">
+                        <button type="submit"
+                                class="rounded-lg px-3 py-1.5 text-xs font-medium
+                             text-danger hover:bg-danger/10 transition-colors">
+                            Delete
+                        </button>
+                    </form>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+</th:block>
+
+</body>
+</html>

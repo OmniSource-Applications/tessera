@@ -47,9 +47,9 @@ public class ExternalDataSourceFactory {
 
     /**
      * Resolve a DataSource for an external source whose credentials are stored
-     * under the given SecretRef key.
+     * under the given key.
      *
-     * @param secretRefKey  e.g. "datastores/mysql-prod" (the key part of secret://datastores/mysql-prod)
+     * @param secretRefKey  e.g. "workspaces/demo/datastores/demo-pg"
      */
     public DataSource forSecretRef(String secretRefKey) {
         return pool.getUnchecked(secretRefKey);
@@ -61,11 +61,10 @@ public class ExternalDataSourceFactory {
      */
     public SecretRef storeCredentials(String sourceKey, ExternalSourceCredentials creds) {
         try {
-            String secretKey = "datastores/" + sourceKey;
             byte[] json = mapper.writeValueAsBytes(creds);
-            secureFileStore.put(secretKey, json);
+            secureFileStore.put(sourceKey, json);
             log.info("Stored credentials for external source: {}", sourceKey);
-            return SecretRef.of(secretKey);
+            return SecretRef.of(sourceKey);
         } catch (Exception e) {
             throw new RuntimeException("Failed to store credentials for: " + sourceKey, e);
         }
