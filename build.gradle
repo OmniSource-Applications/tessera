@@ -71,7 +71,7 @@ dependencies {
     developmentOnly 'org.springframework.boot:spring-boot-devtools'
 //    runtimeOnly 'com.mysql:mysql-connector-j'
 //    runtimeOnly 'com.oracle.database.jdbc:ojdbc11'
-    runtimeOnly 'org.postgresql:postgresql'
+    implementation 'org.postgresql:postgresql'
     annotationProcessor 'org.projectlombok:lombok'
     annotationProcessor 'org.mapstruct:mapstruct-processor:1.6.3'
     annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'

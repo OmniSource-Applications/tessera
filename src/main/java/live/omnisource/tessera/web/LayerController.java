@@ -3,6 +3,7 @@ package live.omnisource.tessera.web;
 import live.omnisource.tessera.layer.LayerService;
 import live.omnisource.tessera.layer.dto.IntrospectionResult;
 import live.omnisource.tessera.layer.dto.LayerDto;
+import live.omnisource.tessera.layer.dto.LayerRecord;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -83,7 +84,7 @@ public class LayerController {
     }
 
     /**
-     * Layer detail page.
+     * Layer detail page — includes sync metadata and config.
      */
     @GetMapping("/{layer}")
     public String detail(@PathVariable String workspace,
@@ -91,6 +92,7 @@ public class LayerController {
                          @PathVariable String layer,
                          Model model) {
         var record = layerService.getLayer(new LayerDto(workspace, datastore, layer));
+        var syncMeta = layerService.getSyncMeta(workspace, datastore, layer);
 
         model.addAttribute("title", layer);
         model.addAttribute("description", "Layer details");
@@ -98,7 +100,41 @@ public class LayerController {
         model.addAttribute("workspace", workspace);
         model.addAttribute("datastore", datastore);
         model.addAttribute("layer", record);
+        model.addAttribute("syncMeta", syncMeta);
         return "layout/page";
+    }
+
+    /**
+     * Save auto-sync configuration for a layer.
+     */
+    @PostMapping("/{layer}/sync/config")
+    public String saveSyncConfig(@PathVariable String workspace,
+                                 @PathVariable String datastore,
+                                 @PathVariable String layer,
+                                 @RequestParam(defaultValue = "false") boolean enabled,
+                                 @RequestParam(defaultValue = "300") int pollIntervalSeconds,
+                                 @RequestParam(required = false) String orderByColumn,
+                                 RedirectAttributes redirect) {
+        try {
+            var config = new LayerRecord.SyncConfig(
+                    enabled,
+                    Math.max(pollIntervalSeconds, 30),
+                    orderByColumn != null && !orderByColumn.isBlank()
+                            ? orderByColumn.trim() : null
+            );
+            layerService.updateSyncConfig(
+                    new LayerDto(workspace, datastore, layer), config);
+
+            String msg = enabled
+                    ? "Auto-sync enabled — polling every " + Math.max(pollIntervalSeconds, 30) + "s"
+                    : "Auto-sync disabled";
+            redirect.addFlashAttribute("success", msg);
+        } catch (Exception e) {
+            redirect.addFlashAttribute("error", e.getMessage());
+        }
+
+        return "redirect:/workspaces/" + workspace + "/datastores/"
+                + datastore + "/layers/" + layer;
     }
 
     /**
