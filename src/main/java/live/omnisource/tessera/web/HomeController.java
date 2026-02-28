@@ -60,13 +60,13 @@ public class HomeController {
         return LAYOUT;
     }
 
-    @GetMapping("/streams")
-    public String streams(Model model) {
-        model.addAttribute(TITLE, "Streams");
-        model.addAttribute(DESCRIPTION, "Live data streams via WebSocket and AMQP.");
-        model.addAttribute(VIEW, "streams");
-        return LAYOUT;
-    }
+//    @GetMapping("/streams")
+//    public String streams(Model model) {
+//        model.addAttribute(TITLE, "Streams");
+//        model.addAttribute(DESCRIPTION, "Live data streams via WebSocket and AMQP.");
+//        model.addAttribute(VIEW, "streams");
+//        return LAYOUT;
+//    }
 
     @GetMapping("/security")
     public String security(Model model) {

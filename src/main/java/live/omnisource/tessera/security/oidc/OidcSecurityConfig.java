@@ -3,6 +3,7 @@ package live.omnisource.tessera.security.oidc;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
+import org.springframework.core.annotation.Order;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -25,11 +26,13 @@ import org.springframework.security.web.authentication.logout.LogoutSuccessHandl
 public class OidcSecurityConfig {
 
     @Bean
+    @Order(1)
     SecurityFilterChain oidcSecurityFilterChain(
             HttpSecurity http,
             ClientRegistrationRepository clientRegistrationRepository
     ) throws Exception {
         return http
+                .securityMatcher("/**")
                 .csrf(csrf -> csrf.ignoringRequestMatchers("/api/**", "/actuator/**"))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(

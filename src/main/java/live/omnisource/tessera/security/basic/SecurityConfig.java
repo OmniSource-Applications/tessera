@@ -3,6 +3,7 @@ package live.omnisource.tessera.security.basic;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
+import org.springframework.core.annotation.Order;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -20,12 +21,14 @@ import org.springframework.security.web.SecurityFilterChain;
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
-@Profile("!oidc")
+@Profile("dev")
 public class SecurityConfig {
 
     @Bean
-    SecurityFilterChain securityFilterChain(HttpSecurity http) {
+    @Order(2)
+    SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         return http
+                .securityMatcher("/**")
                 .csrf(csrf -> csrf.ignoringRequestMatchers("/api/**", "/actuator/**"))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
@@ -65,7 +68,6 @@ public class SecurityConfig {
      * @return an instance of {@code UserDetailsService} containing the configured in-memory user.
      */
     @Bean
-    @Profile("dev")
     public UserDetailsService userDetailsService() {
         UserDetails user = User
                 .withUsername("admin")
