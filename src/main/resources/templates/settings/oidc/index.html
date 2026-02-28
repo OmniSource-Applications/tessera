@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<body>
+
+<th:block th:fragment="content">
+
+    <div class="max-w-3xl">
+
+        <section class="bg-surface border border-border rounded-xl p-6">
+            <div class="flex items-start justify-between gap-4">
+                <div>
+                    <h2 class="text-lg font-semibold text-foreground">OIDC Configuration</h2>
+                    <p class="mt-1 text-sm text-muted">Read-only view of key runtime settings (no secrets).</p>
+                </div>
+                <a th:href="@{/settings}"
+                   class="inline-flex items-center gap-2 rounded-lg bg-background border border-border text-foreground px-3 py-2 text-sm font-semibold hover:bg-background/60">
+                    <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5"/>
+                    </svg>
+                    Back
+                </a>
+            </div>
+
+            <dl class="mt-6 grid grid-cols-1 gap-4">
+                <div class="rounded-lg border border-border bg-background p-4">
+                    <dt class="text-xs font-semibold uppercase tracking-wider text-muted">Issuer URI</dt>
+                    <dd class="mt-1 font-mono text-xs text-foreground break-all" th:text="${issuerUri} ?: '—'">—</dd>
+                </div>
+                <div class="rounded-lg border border-border bg-background p-4">
+                    <dt class="text-xs font-semibold uppercase tracking-wider text-muted">Client ID</dt>
+                    <dd class="mt-1 font-mono text-xs text-foreground break-all" th:text="${clientId} ?: '—'">—</dd>
+                </div>
+                <div class="rounded-lg border border-border bg-background p-4">
+                    <dt class="text-xs font-semibold uppercase tracking-wider text-muted">Scopes</dt>
+                    <dd class="mt-1 font-mono text-xs text-foreground break-all" th:text="${scopes} ?: '—'">—</dd>
+                </div>
+            </dl>
+        </section>
+
+        <section class="mt-6 bg-surface border border-border rounded-xl p-6">
+            <h2 class="text-lg font-semibold text-foreground">RBAC Policies</h2>
+            <p class="mt-1 text-sm text-muted">Manage workspace authorization policies stored in JSON.</p>
+
+            <div class="mt-4">
+                <a th:href="@{/settings/oidc/rbac}"
+                   class="inline-flex items-center gap-2 rounded-lg bg-primary text-primary-foreground px-3 py-2 text-sm font-semibold hover:opacity-90">
+                    Open RBAC Policy Manager
+                    <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
+                    </svg>
+                </a>
+            </div>
+        </section>
+
+    </div>
+
+</th:block>
+
+</body>
+</html>

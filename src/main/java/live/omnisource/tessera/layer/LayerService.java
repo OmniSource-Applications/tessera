@@ -212,6 +212,42 @@ public class LayerService {
         return listAllLayers().size();
     }
 
+    /**
+     * Update the auto-sync configuration for a layer.
+     * Reads the existing record, replaces the syncConfig, and writes back.
+     */
+    public void updateSyncConfig(LayerDto dto, LayerRecord.SyncConfig config) {
+        LayerRecord existing = getLayer(dto);
+        LayerRecord updated = existing.withSyncConfig(config);
+
+        try {
+            byte[] json = objectMapper.writeValueAsBytes(updated);
+            fileStoreService.writeAtomic(layerDir(dto).resolve(METADATA_FILE), json);
+            log.info("Updated sync config for '{}/{}/{}': enabled={} interval={}s orderBy={}",
+                    dto.workspace(), dto.datastore(), dto.layer(),
+                    config.enabled(), config.pollIntervalSeconds(), config.orderByColumn());
+        } catch (IOException e) {
+            throw new DataStoreValidationException(
+                    "Failed to write layer metadata: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Read the sync.json metadata written by FeatureSyncService after each sync.
+     * Returns null if no sync has been run yet.
+     */
+    @SuppressWarnings("unchecked")
+    public Map<String, Object> getSyncMeta(String workspace, String datastore, String layer) {
+        Path syncFile = layersRoot(workspace, datastore).resolve(layer).resolve("sync.json");
+        if (!Files.exists(syncFile)) return null;
+        try {
+            return objectMapper.readValue(Files.readAllBytes(syncFile), Map.class);
+        } catch (IOException e) {
+            log.warn("Failed to read sync metadata: {}", e.getMessage());
+            return null;
+        }
+    }
+
     // ── Path helpers ────────────────────────────────────────
 
     private Path workspaceDir(String workspace) {

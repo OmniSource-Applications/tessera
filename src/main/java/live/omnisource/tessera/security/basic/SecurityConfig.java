@@ -1,9 +1,10 @@
-package live.omnisource.tessera.security;
+package live.omnisource.tessera.security.basic;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
 import org.springframework.security.config.Customizer;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
@@ -18,6 +19,8 @@ import org.springframework.security.web.SecurityFilterChain;
  */
 @Configuration
 @EnableWebSecurity
+@EnableMethodSecurity
+@Profile("!oidc")
 public class SecurityConfig {
 
     @Bean
@@ -67,7 +70,16 @@ public class SecurityConfig {
         UserDetails user = User
                 .withUsername("admin")
                 .password("{noop}admin")
-                .roles("USER", "ADMIN")
+                // "admin" is intentionally the superuser in non-OIDC profiles.
+                // Roles -> ROLE_* authorities.
+                .roles("USER", "ADMIN", "TESSERA_PLATFORM_ADMIN", "TESSERA_SECURITY_ADMIN")
+                // Permissions -> direct authorities (used by @PreAuthorize and Thymeleaf sec:authorize).
+                .authorities(
+                        "TESSERA_OPS_VIEW",
+                        "TESSERA_OPS_ADMIN",
+                        "TESSERA_RBAC_VIEW",
+                        "TESSERA_RBAC_EDIT"
+                )
                 .build();
         return new InMemoryUserDetailsManager(user);
     }

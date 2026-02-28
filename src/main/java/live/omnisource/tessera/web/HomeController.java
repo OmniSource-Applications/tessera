@@ -3,9 +3,12 @@ package live.omnisource.tessera.web;
 import live.omnisource.tessera.datastore.DataStoreService;
 import live.omnisource.tessera.layer.LayerService;
 import live.omnisource.tessera.workspace.WorkspaceService;
+import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+
+import java.util.Arrays;
 
 @Controller
 public class HomeController {
@@ -18,12 +21,16 @@ public class HomeController {
     private final WorkspaceService workspaceService;
     private final DataStoreService dataStoreService;
     private final LayerService layerService;
+    private final Environment environment;
 
     public HomeController(WorkspaceService workspaceService,
-                          DataStoreService dataStoreService, LayerService layerService) {
+                          DataStoreService dataStoreService,
+                          LayerService layerService,
+                          Environment environment) {
         this.workspaceService = workspaceService;
         this.dataStoreService = dataStoreService;
         this.layerService = layerService;
+        this.environment = environment;
     }
 
     @GetMapping("/")
@@ -61,10 +68,12 @@ public class HomeController {
         return LAYOUT;
     }
 
-    @GetMapping("/settings")
-    public String settings(Model model) {
-        model.addAttribute(TITLE, "Settings");
-        model.addAttribute(VIEW, "settings");
+    @GetMapping("/security")
+    public String security(Model model) {
+        model.addAttribute(TITLE, "Security");
+        model.addAttribute(VIEW, "security");
+        model.addAttribute("activeProfiles", Arrays.asList(environment.getActiveProfiles()));
+        model.addAttribute("oidcEnabled", Arrays.asList(environment.getActiveProfiles()).contains("oidc"));
         return LAYOUT;
     }
 }

@@ -20,15 +20,146 @@
         <span class="text-foreground font-medium" th:text="${layer.layer().layer()}">layer</span>
     </nav>
 
-    <!-- Status -->
-    <div class="mb-6 flex items-center gap-3">
-    <span class="inline-flex items-center rounded-full px-3 py-1 text-xs font-medium"
-          th:classappend="${layer.status() == 'ACTIVE'} ? 'bg-success/10 text-success' : 'bg-danger/10 text-danger'"
-          th:text="${layer.status()}">ACTIVE</span>
-        <span class="text-sm text-muted">
-      Source:
-      <span class="text-foreground" th:text="${layer.sourceSchema() + '.' + layer.sourceTable()}">public.table</span>
-    </span>
+    <!-- Flash messages -->
+    <div th:if="${success}"
+         class="mb-6 rounded-lg bg-success/10 border border-success/20 px-4 py-3 text-sm text-success">
+        <span th:text="${success}">Success</span>
+    </div>
+    <div th:if="${error}"
+         class="mb-6 rounded-lg bg-danger/10 border border-danger/20 px-4 py-3 text-sm text-danger">
+        <span th:text="${error}">Error</span>
+    </div>
+
+    <!-- Status + Manual sync -->
+    <div class="mb-6 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+            <span class="inline-flex items-center rounded-full px-3 py-1 text-xs font-medium"
+                  th:classappend="${layer.status() == 'ACTIVE'} ? 'bg-success/10 text-success' : 'bg-danger/10 text-danger'"
+                  th:text="${layer.status()}">ACTIVE</span>
+            <span class="text-sm text-muted">
+                Source:
+                <span class="text-foreground" th:text="${layer.sourceSchema() + '.' + layer.sourceTable()}">public.table</span>
+            </span>
+        </div>
+        <form th:action="@{/workspaces/{ws}/datastores/{ds}/layers/{l}/sync(ws=${workspace}, ds=${datastore}, l=${layer.layer().layer()})}"
+              method="post">
+            <button type="submit"
+                    class="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-medium
+                           text-primary-foreground hover:bg-primary-hover transition-all shadow-sm">
+                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                          d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182"/>
+                </svg>
+                Sync Now
+            </button>
+        </form>
+    </div>
+
+    <!-- Sync status card -->
+    <div th:if="${syncMeta != null}" class="mb-6 bg-surface border border-border rounded-xl p-5">
+        <div class="flex items-center justify-between mb-3">
+            <h3 class="text-sm font-semibold text-foreground">Sync Status</h3>
+            <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium bg-primary/10 text-primary"
+                  th:text="${syncMeta.get('status')}">SYNCED</span>
+        </div>
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm">
+            <div>
+                <p class="text-xs text-muted uppercase tracking-wide">Total Ingested</p>
+                <p class="mt-0.5 font-semibold text-foreground"
+                   th:text="${syncMeta.get('totalIngested')}">0</p>
+            </div>
+            <div>
+                <p class="text-xs text-muted uppercase tracking-wide">Last Batch</p>
+                <p class="mt-0.5 font-semibold text-foreground"
+                   th:text="${syncMeta.get('lastBatchSize')}">0</p>
+            </div>
+            <div>
+                <p class="text-xs text-muted uppercase tracking-wide">Last Mode</p>
+                <p class="mt-0.5 font-semibold text-foreground"
+                   th:text="${syncMeta.get('lastMode')}">—</p>
+            </div>
+            <div>
+                <p class="text-xs text-muted uppercase tracking-wide">Syncs Run</p>
+                <p class="mt-0.5 font-semibold text-foreground"
+                   th:text="${syncMeta.get('syncCount')}">0</p>
+            </div>
+            <div>
+                <p class="text-xs text-muted uppercase tracking-wide">H3 Resolutions</p>
+                <p class="mt-0.5 font-semibold text-foreground"
+                   th:text="${syncMeta.get('h3Resolutions')}">—</p>
+            </div>
+            <div class="sm:col-span-3">
+                <p class="text-xs text-muted uppercase tracking-wide">Last Synced</p>
+                <p class="mt-0.5 font-semibold text-foreground"
+                   th:text="${syncMeta.get('lastSync')}">—</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Auto-sync configuration -->
+    <div class="mb-8 bg-surface border border-border rounded-xl p-5">
+        <h3 class="text-sm font-semibold text-foreground mb-4">Auto-Sync Configuration</h3>
+
+        <form th:action="@{/workspaces/{ws}/datastores/{ds}/layers/{l}/sync/config(ws=${workspace}, ds=${datastore}, l=${layer.layer().layer()})}"
+              method="post"
+              class="space-y-4">
+
+            <!-- Enable toggle -->
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-foreground">Enable Auto-Sync</p>
+                    <p class="text-xs text-muted mt-0.5">Periodically poll the source for new data</p>
+                </div>
+                <label class="relative inline-flex items-center cursor-pointer">
+                    <input type="checkbox" name="enabled" value="true" class="sr-only peer"
+                           th:checked="${layer.syncConfig() != null and layer.syncConfig().enabled()}">
+                    <div class="w-11 h-6 rounded-full bg-border peer-checked:bg-primary
+                                after:content-[''] after:absolute after:top-[2px] after:start-[2px]
+                                after:bg-white after:rounded-full after:h-5 after:w-5
+                                after:transition-all peer-checked:after:translate-x-full
+                                transition-colors"></div>
+                </label>
+            </div>
+
+            <!-- Poll interval -->
+            <div>
+                <label for="pollInterval" class="block text-sm font-medium text-foreground mb-1.5">
+                    Poll Interval (seconds)
+                </label>
+                <input type="number" name="pollIntervalSeconds" id="pollInterval"
+                       min="30" max="86400" step="30"
+                       th:value="${layer.syncConfig() != null ? layer.syncConfig().pollIntervalSeconds() : 300}"
+                       class="w-full sm:w-48 rounded-lg border border-border bg-background px-3 py-2
+                              text-sm text-foreground focus:border-primary focus:ring-1 focus:ring-primary">
+                <p class="text-xs text-muted mt-1">Minimum 30s. Common values: 60 (1 min), 300 (5 min), 3600 (1 hr)</p>
+            </div>
+
+            <!-- Order by column -->
+            <div>
+                <label for="orderByColumn" class="block text-sm font-medium text-foreground mb-1.5">
+                    Ordering Column <span class="text-muted font-normal">(optional)</span>
+                </label>
+                <input type="text" name="orderByColumn" id="orderByColumn"
+                       placeholder="e.g. updated_at, id, created_at"
+                       th:value="${layer.syncConfig() != null ? layer.syncConfig().orderByColumn() : ''}"
+                       class="w-full sm:w-72 rounded-lg border border-border bg-background px-3 py-2
+                              text-sm text-foreground placeholder:text-muted
+                              focus:border-primary focus:ring-1 focus:ring-primary">
+                <p class="text-xs text-muted mt-1">
+                    A monotonically increasing column (timestamp or auto-increment) enables
+                    <strong>incremental sync</strong> — only new rows are read each poll.
+                    Without this, each poll does a full table scan with hash-based dedup.
+                </p>
+            </div>
+
+            <div class="pt-2">
+                <button type="submit"
+                        class="rounded-lg bg-foreground px-4 py-2.5 text-sm font-medium text-background
+                               hover:bg-foreground/90 transition-all">
+                    Save Configuration
+                </button>
+            </div>
+        </form>
     </div>
 
     <!-- Metadata cards -->
@@ -79,7 +210,7 @@
 
     </div>
 
-    <!-- Placeholder for future: preview map, attribute schema, style config -->
+    <!-- Preview placeholder -->
     <div class="bg-surface border border-border rounded-xl p-6">
         <h2 class="text-lg font-semibold text-foreground mb-2">Preview</h2>
         <div class="py-8 text-center">
