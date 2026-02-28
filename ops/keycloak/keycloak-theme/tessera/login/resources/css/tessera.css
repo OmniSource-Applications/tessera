@@ -1,0 +1,268 @@
+/* Keycloak Theme — Tessera tokens (mirrors app main.css) */
+
+:root {
+    /* --- Surfaces --- */
+    --color-background: #F6F5F2;
+    --color-surface: #FFFFFF;
+    --color-elevated: #FFFFFF;
+
+    /* --- Text --- */
+    --color-foreground: #1A1A1A;
+    --color-muted: #6B6B6B;
+
+    /* --- Brand --- */
+    --color-primary: #2B5D4F;
+    --color-primary-hover: #234D42;
+    --color-primary-foreground: #FFFFFF;
+
+    --color-accent: #D4785C;
+    --color-accent-hover: #C46A4E;
+    --color-accent-foreground: #FFFFFF;
+
+    /* --- Semantic --- */
+    --color-danger: #C94F4F;
+    --color-danger-hover: #B54444;
+    --color-danger-foreground: #FFFFFF;
+
+    --color-success: #3A8A6A;
+    --color-success-foreground: #FFFFFF;
+
+    --color-warning: #D4965C;
+    --color-warning-foreground: #1A1A1A;
+
+    --color-info: #4A7A9B;
+    --color-info-foreground: #FFFFFF;
+
+    /* --- Borders & Dividers --- */
+    --color-border: #E0DED8;
+    --color-border-strong: #C8C5BD;
+
+    /* --- Interactive --- */
+    --color-ring: #2B5D4F;
+    --color-input: #E0DED8;
+    --color-input-hover: #D1CFC8;
+    --color-placeholder: #9A9A9A;
+
+    /* --- Overlay --- */
+    --color-overlay: rgba(26, 26, 26, 0.4);
+
+    /* --- Radius --- */
+    --radius-sm: 0.375rem;
+    --radius-md: 0.5rem;
+    --radius-lg: 0.75rem;
+    --radius-xl: 1rem;
+    --radius-2xl: 1.25rem;
+    --radius-full: 9999px;
+}
+
+/* Respect system preference when no explicit class toggles exist */
+@media (prefers-color-scheme: dark) {
+    :root {
+        --color-background: #121214;
+        --color-surface: #1C1C1F;
+        --color-elevated: #242428;
+
+        --color-foreground: #F0EFEC;
+        --color-muted: #8A8A8E;
+
+        --color-primary: #6ABFA3;
+        --color-primary-hover: #7DCDB2;
+        --color-primary-foreground: #121214;
+
+        --color-accent: #E8956E;
+        --color-accent-hover: #EDA580;
+        --color-accent-foreground: #121214;
+
+        --color-danger: #E06B6B;
+        --color-danger-hover: #E88080;
+        --color-danger-foreground: #121214;
+
+        --color-success: #5BBF96;
+        --color-success-foreground: #121214;
+
+        --color-warning: #E8A86E;
+        --color-warning-foreground: #121214;
+
+        --color-info: #6AABCF;
+        --color-info-foreground: #121214;
+
+        --color-border: #2A2A2E;
+        --color-border-strong: #3A3A3F;
+
+        --color-ring: #6ABFA3;
+        --color-input: #2A2A2E;
+        --color-input-hover: #33333A;
+        --color-placeholder: #5C5C60;
+
+        --color-overlay: rgba(0, 0, 0, 0.6);
+    }
+}
+
+/* ------------- Base page ------------- */
+
+* { box-sizing: border-box; }
+
+body.tessera-body {
+    margin: 0;
+    font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji",
+    "Segoe UI Emoji";
+    background: var(--color-background);
+    color: var(--color-foreground);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+.tessera-container {
+    width: 100%;
+    max-width: 420px;
+}
+
+/* ------------- Layout blocks ------------- */
+
+.login-wrapper {
+    width: 100%;
+}
+
+.logo-block {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+}
+
+.logo-block img {
+    width: 300px;
+    margin-bottom: 8px;
+}
+
+.logo-block h1 {
+    margin: 0;
+    font-size: 24px;
+    font-weight: 650;
+    letter-spacing: -0.02em;
+    color: var(--color-foreground);
+    text-transform: lowercase;
+}
+
+.logo-block p {
+    margin: 6px 0 0 0;
+    font-size: 13px;
+    color: var(--color-muted);
+}
+
+/* ------------- Card ------------- */
+
+.login-card {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-2xl);
+    padding: 28px;
+    box-shadow: 0 1px 0 rgba(0,0,0,0.03), 0 10px 30px rgba(0,0,0,0.06);
+}
+
+/* ------------- Alerts ------------- */
+
+.alert {
+    border-radius: var(--radius-lg);
+    padding: 10px 12px;
+    font-size: 13px;
+    margin-bottom: 14px;
+    border: 1px solid transparent;
+}
+
+.alert-error {
+    background: color-mix(in srgb, var(--color-danger) 12%, transparent);
+    border-color: color-mix(in srgb, var(--color-danger) 25%, transparent);
+    color: var(--color-danger);
+}
+
+/* ------------- Form controls ------------- */
+
+.field {
+    margin-bottom: 14px;
+}
+
+label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    margin-bottom: 6px;
+    color: var(--color-foreground);
+}
+
+input[type="text"],
+input[type="password"] {
+    width: 100%;
+    appearance: none;
+    border: 1px solid var(--color-input);
+    background: var(--color-background);
+    color: var(--color-foreground);
+    border-radius: var(--radius-lg);
+    padding: 10px 12px;
+    font-size: 14px;
+    transition: border-color 120ms ease, box-shadow 120ms ease, background 120ms ease;
+}
+
+input::placeholder {
+    color: var(--color-placeholder);
+}
+
+input:hover {
+    border-color: var(--color-input-hover);
+}
+
+input:focus {
+    outline: none;
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-ring) 22%, transparent);
+}
+
+/* ------------- Buttons ------------- */
+
+.btn-primary,
+button.btn-primary,
+button[type="submit"] {
+    width: 100%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 10px 14px;
+    border-radius: var(--radius-lg);
+    border: 1px solid transparent;
+    background: var(--color-primary);
+    color: var(--color-primary-foreground);
+    font-size: 14px;
+    font-weight: 650;
+    cursor: pointer;
+    transition: transform 80ms ease, background 120ms ease, box-shadow 120ms ease;
+}
+
+.btn-primary:hover,
+button[type="submit"]:hover {
+    background: var(--color-primary-hover);
+}
+
+.btn-primary:active,
+button[type="submit"]:active {
+    transform: scale(0.985);
+}
+
+.btn-primary:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-ring) 28%, transparent);
+}
+
+/* ------------- Footer ------------- */
+
+.footer-note {
+    margin-top: 18px;
+    text-align: center;
+    font-size: 11px;
+    color: var(--color-muted);
+}
