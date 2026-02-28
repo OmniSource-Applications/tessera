@@ -1,16 +1,20 @@
 package live.omnisource.tessera.sync;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import live.omnisource.tessera.stream.event.FeatureIngestEvent;
 import live.omnisource.tessera.sync.dto.ExtractedFeature;
 import lombok.extern.slf4j.Slf4j;
+import org.locationtech.jts.geom.Envelope;
 import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.io.WKBWriter;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.support.TransactionTemplate;
 
 import java.sql.PreparedStatement;
 import java.sql.Timestamp;
+import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -53,14 +57,17 @@ public class FeatureBatchWriter {
     private final JdbcTemplate jdbcTemplate;
     private final TransactionTemplate txTemplate;
     private final ObjectMapper objectMapper;
+    private final ApplicationEventPublisher eventPublisher;
     private final WKBWriter wkbWriter;
 
     public FeatureBatchWriter(JdbcTemplate jdbcTemplate,
                               TransactionTemplate txTemplate,
-                              ObjectMapper objectMapper) {
+                              ObjectMapper objectMapper,
+                              ApplicationEventPublisher eventPublisher) {
         this.jdbcTemplate = jdbcTemplate;
         this.txTemplate = txTemplate;
         this.objectMapper = objectMapper;
+        this.eventPublisher = eventPublisher;
         this.wkbWriter = new WKBWriter(2, true); // 2D, include SRID
     }
 
@@ -77,7 +84,7 @@ public class FeatureBatchWriter {
                           List<ExtractedFeature> features, int[] h3Resolutions) {
         if (features.isEmpty()) return 0;
 
-        return txTemplate.execute(status -> {
+        Integer result = txTemplate.execute(status -> {
             long[] featureIds = new long[features.size()];
             Timestamp[] ingestTimes = new Timestamp[features.size()];
             int written = 0;
@@ -107,6 +114,32 @@ public class FeatureBatchWriter {
             log.debug("Wrote batch of {} features for {}", written, sourceTable);
             return written;
         });
+
+        // Publish ingest event AFTER transaction commits (outside txTemplate)
+        if (result != null && result > 0) {
+            publishIngestEvent(sourceId, sourceTable, features);
+        }
+
+        return result != null ? result : 0;
+    }
+
+    private void publishIngestEvent(UUID sourceId, String sourceTable,
+                                    List<ExtractedFeature> features) {
+        try {
+            var envelope = new Envelope();
+            Instant min = Instant.MAX, max = Instant.MIN;
+            Instant now = Instant.now();
+
+            for (ExtractedFeature f : features) {
+                envelope.expandToInclude(f.geometry().getEnvelopeInternal());
+            }
+
+            // Use now() as the timestamp range since we just wrote with updated_at = now()
+            eventPublisher.publishEvent(new FeatureIngestEvent(
+                    sourceId, sourceTable, features.size(), envelope, now, now));
+        } catch (Exception e) {
+            log.warn("Failed to publish ingest event: {}", e.getMessage());
+        }
     }
 
     private void indexH3Batch(List<ExtractedFeature> features, long[] featureIds,
