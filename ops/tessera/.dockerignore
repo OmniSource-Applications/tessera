@@ -1,0 +1,12 @@
+.git
+.gitignore
+.idea
+*.iml
+build/
+.gradle/
+node_modules/
+docker/
+demo-postgis/
+*.md
+.env
+.env.example

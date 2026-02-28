@@ -1,0 +1,61 @@
+services:
+
+  # ── Tessera Application ────────────────────────────────────
+  tessera:
+    build:
+      context: ../..
+      dockerfile: ops/tessera/docker/app/Dockerfile
+    container_name: tessera
+    depends_on:
+      tessera-db:
+        condition: service_healthy
+    ports:
+      - "${TESSERA_PORT:-8080}:8080"
+    user: "${UID}:${GID}"
+    environment:
+      UID: ${UID}
+      GID: ${GID}
+      SPRING_DATASOURCE_URL:      jdbc:postgresql://tessera-db:5432/tessera
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-tessera}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-tessera}
+      TESSERA_DATA_DIR:           /var/lib/tessera
+      PROFILE: ${PROFILE:-dev}
+
+    volumes:
+      - tessera-data:/var/lib/tessera
+    restart: unless-stopped
+
+  # ── Tessera Database (PostGIS + H3 + Partman) ─────────────
+  tessera-db:
+    build:
+      context: ../..
+      dockerfile: ops/tessera/docker/postgres/Dockerfile
+    container_name: tessera-db
+    environment:
+      POSTGRES_DB:       ${POSTGRES_DB:-tessera}
+      POSTGRES_USER:     ${POSTGRES_USER:-tessera}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-tessera}
+    ports:
+      - "${TESSERA_DB_PORT:-5438}:5432"
+    volumes:
+      - tessera-pgdata:/var/lib/postgresql/data
+    command: >
+      postgres
+        -c shared_preload_libraries=pg_partman_bgw
+        -c pg_partman_bgw.interval=3600
+        -c pg_partman_bgw.role=tessera
+        -c pg_partman_bgw.dbname=tessera
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U tessera -d tessera"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+volumes:
+  tessera-pgdata:
+  tessera-data:
+
+networks:
+  tessera-net:
+    name: tessera-net

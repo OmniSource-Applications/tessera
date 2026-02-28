@@ -6,5 +6,5 @@ gradlew.bat
 /build
 /src/main/frontend/node_modules
 /data_dir
-/ops
+/ops/tessera/.env
 HELP.md

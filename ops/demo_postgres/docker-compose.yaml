@@ -1,0 +1,27 @@
+version: "3.9"
+
+services:
+  tessera-demo-postgis:
+    image: postgis/postgis:16-3.4
+    container_name: tessera-demo-postgis
+    ports:
+      - "5433:5432"
+    environment:
+      POSTGRES_DB: tessera_demo
+      POSTGRES_USER: tessera
+      POSTGRES_PASSWORD: tessera
+    volumes:
+      - ./init:/docker-entrypoint-initdb.d
+      - tessera-demo-pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U tessera -d tessera_demo"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  tessera-demo-pgdata:
+
+networks:
+  tessera-net:
+    name: tessera-net
