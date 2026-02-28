@@ -1,0 +1,49 @@
+spring:
+  security:
+    oauth2:
+      client:
+        registration:
+          tessera:
+            provider: tessera
+            client-id: ${TESSERA_OIDC_CLIENT_ID:tessera}
+            client-secret: ${TESSERA_OIDC_CLIENT_SECRET:change-me}
+            client-name: Tessera OIDC
+            authorization-grant-type: authorization_code
+            redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
+            scope:
+              - openid
+              - profile
+              - email
+              # add these if your IdP supports them and you plan to map them:
+              # - groups
+              # - roles
+        provider:
+          tessera:
+            issuer-uri: ${TESSERA_OIDC_ISSUER_URI:https://keycloak.example.com/realms/tessera}
+            user-name-attribute: preferred_username
+
+tessera:
+  oidc:
+    enabled: true
+    registration-id: tessera
+    issuer-uri: ${TESSERA_OIDC_ISSUER_URI:https://keycloak.example.com/realms/tessera}
+    claims:
+      subject: sub
+      username: preferred_username
+      email: email
+      groups: groups
+  rbac:
+    directory: ${TESSERA_RBAC_DIR:etc/auth/rbac}
+
+server:
+  forward-headers-strategy: framework
+
+
+logging:
+  level:
+    org.springframework.security: INFO
+    org.springframework.security.oauth2: INFO
+    live.omnisource.tessera.security: INFO
+    live.omnisource.tessera.security.rbac: INFO
+
+#

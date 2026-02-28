@@ -18,7 +18,7 @@ public class LayersController {
     @GetMapping
     public String list(Model model) {
         var layers = layersService.listAllLayers();
-        model.addAttribute("title", "Sources");
+        model.addAttribute("title", "Layers");
         model.addAttribute("description", "All layers across workspaces.");
         model.addAttribute("view", "layerslist/list");
         model.addAttribute("layers", layers);
