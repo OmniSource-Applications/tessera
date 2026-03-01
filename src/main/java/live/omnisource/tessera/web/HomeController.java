@@ -45,13 +45,13 @@ public class HomeController {
         return LAYOUT;
     }
 
-    @GetMapping("/layergroups")
-    public String layergroups(Model model) {
-        model.addAttribute(TITLE, "Layer Groups");
-        model.addAttribute(DESCRIPTION, "Build layer groups for data visualization.");
-        model.addAttribute(VIEW, "layer");
-        return LAYOUT;
-    }
+//    @GetMapping("/layergroups")
+//    public String layergroups(Model model) {
+//        model.addAttribute(TITLE, "Layer Groups");
+//        model.addAttribute(DESCRIPTION, "Build layer groups for data visualization.");
+//        model.addAttribute(VIEW, "layer");
+//        return LAYOUT;
+//    }
 
 //    @GetMapping("/query")
 //    public String query(Model model) {

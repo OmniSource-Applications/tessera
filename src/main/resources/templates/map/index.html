@@ -10,149 +10,160 @@
     <script src="https://unpkg.com/h3-js@4.1.0/dist/h3-js.umd.js"></script>
 
     <!-- Full-bleed map container (negates layout padding) -->
-    <div class="-mx-4 sm:-mx-2 lg:-mx-4 -my-8 relative" style="height: calc(100vh - 8.5rem);">
+    <div class="bg-surface border border-border rounded-xl overflow-hidden">
+        <div class="relative h-[calc(100vh-10.5rem)]">
 
-        <!-- Map -->
-        <div id="map" style="height: 100%; width: 100%;"></div>
+            <!-- Map -->
+            <div id="map" class="h-full w-full"></div>
 
-        <!-- ── Controls Panel (top-left) ─────────────────────── -->
-        <div id="controls"
-             class="absolute top-3 left-3 z-10 bg-surface/95 backdrop-blur border border-border
-                rounded-xl shadow-lg w-64 text-sm overflow-hidden">
+            <!-- ── Controls Panel (top-left) ─────────────────────── -->
+            <div id="controls"
+                 class="absolute top-3 left-3 z-10 bg-surface/95 backdrop-blur border border-border
+                    rounded-xl shadow-lg w-64 text-sm overflow-hidden">
 
-            <!-- Header -->
-            <div class="px-4 py-3 border-b border-border flex items-center justify-between">
-                <span class="font-semibold text-foreground text-xs uppercase tracking-wide">Layers</span>
-                <button onclick="togglePanel('controls-body')"
-                        class="text-muted hover:text-foreground transition-colors">
-                    <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 15.75 7.5-7.5 7.5 7.5"/>
-                    </svg>
-                </button>
-            </div>
+                <!-- Header -->
+                <div class="px-4 py-3 border-b border-border flex items-center justify-between">
+                    <span class="font-semibold text-foreground text-xs uppercase tracking-wide">Layers</span>
+                    <button onclick="togglePanel('controls-body')"
+                            class="text-muted hover:text-foreground transition-colors">
+                        <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 15.75 7.5-7.5 7.5 7.5"/>
+                        </svg>
+                    </button>
+                </div>
 
-            <div id="controls-body" class="px-4 py-3 space-y-3">
+                <div id="controls-body" class="px-4 py-3 space-y-3">
 
-                <!-- H3 Hex Density toggle -->
-                <label class="flex items-center gap-2.5 cursor-pointer group">
-                    <input type="checkbox" id="toggle-hex" checked
-                           onchange="toggleLayer('hex', this.checked)"
-                           class="rounded border-border text-primary focus:ring-primary">
-                    <span class="flex-1 text-foreground group-hover:text-primary transition-colors">H3 Density Grid</span>
-                    <span id="hex-count" class="text-[0.65rem] text-muted font-mono">—</span>
-                </label>
+                    <!-- H3 Hex Density toggle -->
+                    <label class="flex items-center gap-2.5 cursor-pointer group">
+                        <input type="checkbox" id="toggle-hex" checked
+                               onchange="toggleLayer('hex', this.checked)"
+                               class="rounded border-border text-primary focus:ring-primary">
+                        <span class="flex-1 text-foreground group-hover:text-primary transition-colors">H3 Density Grid</span>
+                        <span id="hex-count" class="text-[0.65rem] text-muted font-mono">—</span>
+                    </label>
 
-                <!-- Features toggle -->
-                <label class="flex items-center gap-2.5 cursor-pointer group">
-                    <input type="checkbox" id="toggle-features" checked
-                           onchange="toggleLayer('features', this.checked)"
-                           class="rounded border-border text-primary focus:ring-primary">
-                    <span class="flex-1 text-foreground group-hover:text-primary transition-colors">Features</span>
-                    <span id="features-count" class="text-[0.65rem] text-muted font-mono">—</span>
-                </label>
+                    <!-- Features toggle -->
+                    <label class="flex items-center gap-2.5 cursor-pointer group">
+                        <input type="checkbox" id="toggle-features" checked
+                               onchange="toggleLayer('features', this.checked)"
+                               class="rounded border-border text-primary focus:ring-primary">
+                        <span class="flex-1 text-foreground group-hover:text-primary transition-colors">Features</span>
+                        <span id="features-count" class="text-[0.65rem] text-muted font-mono">—</span>
+                    </label>
 
-                <!-- Radius Search toggle -->
-                <label class="flex items-center gap-2.5 cursor-pointer group">
-                    <input type="checkbox" id="toggle-radius"
-                           onchange="toggleRadiusMode(this.checked)"
-                           class="rounded border-border text-accent focus:ring-accent">
-                    <span class="flex-1 text-foreground group-hover:text-accent transition-colors">Radius Search</span>
-                </label>
+                    <!-- Radius Search toggle -->
+                    <label class="flex items-center gap-2.5 cursor-pointer group">
+                        <input type="checkbox" id="toggle-radius"
+                               onchange="toggleRadiusMode(this.checked)"
+                               class="rounded border-border text-accent focus:ring-accent">
+                        <span class="flex-1 text-foreground group-hover:text-accent transition-colors">Radius Search</span>
+                    </label>
 
-                <!-- Radius slider (shown when radius mode active) -->
-                <div id="radius-controls" class="hidden pl-6 space-y-1.5">
-                    <div class="flex items-center justify-between">
-                        <span class="text-xs text-muted">Radius</span>
-                        <span id="radius-value" class="text-xs font-mono text-foreground">500m</span>
+                    <!-- Radius slider (shown when radius mode active) -->
+                    <div id="radius-controls" class="hidden pl-6 space-y-1.5">
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs text-muted">Radius</span>
+                            <span id="radius-value" class="text-xs font-mono text-foreground">500m</span>
+                        </div>
+                        <input type="range" id="radius-slider" min="100" max="10000" value="500" step="100"
+                               oninput="document.getElementById('radius-value').textContent = this.value + 'm'"
+                               class="w-full accent-accent">
                     </div>
-                    <input type="range" id="radius-slider" min="100" max="10000" value="500" step="100"
-                           oninput="document.getElementById('radius-value').textContent = this.value + 'm'"
-                           class="w-full accent-accent">
-                </div>
 
-                <hr class="border-border"/>
+                    <hr class="border-border"/>
 
-                <!-- Source filter -->
-                <div>
-                    <label class="block text-xs text-muted mb-1.5">Source filter</label>
-                    <select id="source-filter" onchange="onSourceFilterChange()"
-                            class="w-full rounded-lg border border-border bg-background px-2.5 py-1.5
-                               text-xs text-foreground">
-                        <option value="">All sources</option>
-                        <option th:each="src : ${sources}" th:value="${src.get('id')}"
-                                th:text="${src.get('name')}">source</option>
-                    </select>
-                </div>
+                    <!-- Source filter -->
+                    <div>
+                        <label class="block text-xs text-muted mb-1.5">Source filter</label>
+                        <select id="source-filter" onchange="onSourceFilterChange()"
+                                class="w-full rounded-lg border border-border bg-background px-2.5 py-1.5
+                                   text-xs text-foreground">
+                            <option value="">All sources</option>
+                            <option th:each="src : ${sources}" th:value="${src.get('id')}"
+                                    th:text="${src.get('name')}">source</option>
+                        </select>
+                    </div>
 
-                <!-- H3 Resolution -->
-                <div>
-                    <label class="block text-xs text-muted mb-1.5">H3 Resolution</label>
-                    <select id="h3-resolution"
-                            onchange="reloadHexGrid()"
-                            class="w-full rounded-lg border border-border bg-background px-2.5 py-1.5
-                               text-xs text-foreground">
-                        <option value="7" selected>7 (coarse ~5km)</option>
-                    </select>
+                    <!-- H3 Resolution -->
+                    <div>
+                        <label class="block text-xs text-muted mb-1.5">H3 Resolution</label>
+                        <select id="h3-resolution"
+                                onchange="reloadHexGrid()"
+                                class="w-full rounded-lg border border-border bg-background px-2.5 py-1.5
+                                   text-xs text-foreground">
+                            <option value="7" selected>7 (coarse ~5km)</option>
+                        </select>
+                    </div>
+
+                    <hr class="border-border"/>
+
+                    <!-- Layer Groups (dynamically populated) -->
+                    <div>
+                        <label class="block text-xs text-muted mb-1.5">Layer Groups</label>
+                        <div id="group-overlays" class="space-y-2">
+                            <p id="group-overlays-empty" class="text-[0.65rem] text-muted italic">Loading…</p>
+                        </div>
+                    </div>
                 </div>
             </div>
-        </div>
 
-        <!-- ── Legend (bottom-left) ───────────────────────────── -->
-        <div id="legend"
-             class="absolute bottom-6 left-3 z-10 bg-surface/95 backdrop-blur border border-border
-                rounded-xl shadow-lg px-4 py-3">
-            <p class="text-[0.65rem] text-muted font-semibold uppercase tracking-wide mb-2">Feature Density</p>
-            <div class="flex items-center gap-1">
-                <span class="text-[0.6rem] text-muted">Low</span>
-                <div class="flex h-3 rounded-sm overflow-hidden">
-                    <div class="w-6" style="background:#2b1a5e"></div>
-                    <div class="w-6" style="background:#3c3d99"></div>
-                    <div class="w-6" style="background:#2596be"></div>
-                    <div class="w-6" style="background:#57c785"></div>
-                    <div class="w-6" style="background:#f2e05a"></div>
-                    <div class="w-6" style="background:#f07c44"></div>
-                    <div class="w-6" style="background:#d62839"></div>
+            <!-- ── Legend (bottom-left) ───────────────────────────── -->
+            <div id="legend"
+                 class="absolute bottom-6 left-3 z-10 bg-surface/95 backdrop-blur border border-border
+                    rounded-xl shadow-lg px-4 py-3">
+                <p class="text-[0.65rem] text-muted font-semibold uppercase tracking-wide mb-2">Feature Density</p>
+                <div class="flex items-center gap-1">
+                    <span class="text-[0.6rem] text-muted">Low</span>
+                    <div class="flex h-3 rounded-sm overflow-hidden">
+                        <div class="w-6" style="background:#2b1a5e"></div>
+                        <div class="w-6" style="background:#3c3d99"></div>
+                        <div class="w-6" style="background:#2596be"></div>
+                        <div class="w-6" style="background:#57c785"></div>
+                        <div class="w-6" style="background:#f2e05a"></div>
+                        <div class="w-6" style="background:#f07c44"></div>
+                        <div class="w-6" style="background:#d62839"></div>
+                    </div>
+                    <span class="text-[0.6rem] text-muted">High</span>
                 </div>
-                <span class="text-[0.6rem] text-muted">High</span>
             </div>
-        </div>
 
-        <!-- ── Info Panel (right side, shown on feature click) ── -->
-        <div id="info-panel"
-             class="hidden absolute top-3 right-3 z-10 bg-surface/95 backdrop-blur border border-border
-                rounded-xl shadow-lg w-80 max-h-[70vh] overflow-hidden flex flex-col">
-            <div class="px-4 py-3 border-b border-border flex items-center justify-between shrink-0">
-                <span class="font-semibold text-foreground text-xs uppercase tracking-wide">Feature Details</span>
-                <button onclick="closeInfoPanel()"
-                        class="text-muted hover:text-foreground transition-colors">
-                    <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"/>
-                    </svg>
-                </button>
+            <!-- ── Info Panel (right side, shown on feature click) ── -->
+            <div id="info-panel"
+                 class="hidden absolute top-3 right-3 z-10 bg-surface/95 backdrop-blur border border-border
+                    rounded-xl shadow-lg w-80 max-h-[70vh] overflow-hidden flex flex-col">
+                <div class="px-4 py-3 border-b border-border flex items-center justify-between shrink-0">
+                    <span class="font-semibold text-foreground text-xs uppercase tracking-wide">Feature Details</span>
+                    <button onclick="closeInfoPanel()"
+                            class="text-muted hover:text-foreground transition-colors">
+                        <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"/>
+                        </svg>
+                    </button>
+                </div>
+                <div id="info-content" class="px-4 py-3 overflow-y-auto text-xs space-y-2"></div>
             </div>
-            <div id="info-content" class="px-4 py-3 overflow-y-auto text-xs space-y-2"></div>
-        </div>
 
-        <!-- ── Loading indicator ─────────────────────────────── -->
-        <div id="loading"
-             class="hidden absolute top-3 left-1/2 -translate-x-1/2 z-10
-                bg-surface/95 backdrop-blur border border-border rounded-full
-                shadow-lg px-4 py-2 text-xs text-muted flex items-center gap-2">
-            <svg class="animate-spin h-3.5 w-3.5 text-primary" fill="none" viewBox="0 0 24 24">
-                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
-                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
-            </svg>
-            Loading…
-        </div>
+            <!-- ── Loading indicator ─────────────────────────────── -->
+            <div id="loading"
+                 class="hidden absolute top-3 left-1/2 -translate-x-1/2 z-10
+                    bg-surface/95 backdrop-blur border border-border rounded-full
+                    shadow-lg px-4 py-2 text-xs text-muted flex items-center gap-2">
+                <svg class="animate-spin h-3.5 w-3.5 text-primary" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+                </svg>
+                Loading…
+            </div>
 
-        <!-- ── Radius mode cursor hint ───────────────────────── -->
-        <div id="radius-hint"
-             class="hidden absolute bottom-6 left-1/2 -translate-x-1/2 z-10
-                bg-accent/90 text-white rounded-full px-4 py-2 text-xs font-medium shadow-lg">
-            Click on the map to search within radius
-        </div>
+            <!-- ── Radius mode cursor hint ───────────────────────── -->
+            <div id="radius-hint"
+                 class="hidden absolute bottom-6 left-1/2 -translate-x-1/2 z-10
+                    bg-accent/90 text-white rounded-full px-4 py-2 text-xs font-medium shadow-lg">
+                Click on the map to search within radius
+            </div>
 
-    </div>
+        </div>
 
     <!-- ── Map JavaScript ──────────────────────────────────── -->
     <script th:inline="javascript">
@@ -246,6 +257,7 @@
                     setupGlobalInteractions();
                     setupLayerInteractions();
                     loadViewportData();
+                    loadGroupToggles();
                 });
 
                 map.on('moveend', debounce(loadViewportData, DEBOUNCE_MS));
@@ -278,6 +290,10 @@
                     setupLayers();
                     setupGlobalInteractions();
                     setupLayerInteractions();
+                    // Re-add group sources/layers that were active before the style swap
+                    for (const name of activeGroups) {
+                        ensureGroupSourceAndLayers(name);
+                    }
                     loadViewportData();
                 });
             }
@@ -504,6 +520,9 @@
                 if (document.getElementById('toggle-features').checked) {
                     loadFeatures(params, sourceId);
                 }
+
+                // Reload all active group overlays
+                reloadActiveGroups(params);
             }
 
             async function loadHexDensity(bbox) {
@@ -814,6 +833,200 @@
             window.reloadHexGrid = function() {
                 loadViewportData();
             };
+
+            // ── Layer Group Overlays ─────────────────────────────
+
+            const GROUP_COLORS = ['#f59e0b', '#10b981', '#f43f5e', '#06b6d4', '#8b5cf6', '#ec4899', '#14b8a6', '#f97316'];
+            const activeGroups = new Set();  // group names currently toggled on
+            let groupColorMap = {};          // name → color
+
+            /**
+             * Load available groups from API and render toggle checkboxes.
+             */
+            async function loadGroupToggles() {
+                const container = document.getElementById('group-overlays');
+                const emptyEl = document.getElementById('group-overlays-empty');
+
+                try {
+                    const res = await fetch(CTX + '/api/layergroups');
+                    const groups = await res.json();
+
+                    const activeOnes = groups.filter(g => g.active && g.memberCount > 0);
+                    if (activeOnes.length === 0) {
+                        if (emptyEl) emptyEl.textContent = 'No active groups';
+                        return;
+                    }
+
+                    if (emptyEl) emptyEl.remove();
+
+                    activeOnes.forEach((g, i) => {
+                        const color = GROUP_COLORS[i % GROUP_COLORS.length];
+                        groupColorMap[g.name] = color;
+
+                        const label = document.createElement('label');
+                        label.className = 'flex items-center gap-2.5 cursor-pointer group';
+                        label.innerHTML = `
+                            <input type="checkbox" data-group="${escHtml(g.name)}"
+                                   onchange="toggleGroupLayer('${escHtml(g.name)}', this.checked)"
+                                   class="rounded border-border focus:ring-primary"
+                                   style="accent-color: ${color}">
+                            <span class="h-2.5 w-2.5 rounded-full shrink-0" style="background: ${color}"></span>
+                            <span class="flex-1 text-foreground group-hover:text-primary transition-colors text-xs">${escHtml(g.name)}</span>
+                            <span class="text-[0.65rem] text-muted font-mono group-count" data-group-count="${escHtml(g.name)}">—</span>
+                        `;
+                        container.appendChild(label);
+                    });
+                } catch (e) {
+                    console.warn('Failed to load layer groups:', e);
+                    if (emptyEl) emptyEl.textContent = 'Failed to load';
+                }
+            }
+
+            /**
+             * Toggle a group overlay on/off on the map.
+             */
+            window.toggleGroupLayer = function(name, visible) {
+                if (visible) {
+                    activeGroups.add(name);
+                    ensureGroupSourceAndLayers(name);
+                    const bounds = map.getBounds();
+                    loadGroupFeatures(name, {
+                        minLon: bounds.getWest(), minLat: bounds.getSouth(),
+                        maxLon: bounds.getEast(), maxLat: bounds.getNorth()
+                    });
+                } else {
+                    activeGroups.delete(name);
+                    removeGroupSourceAndLayers(name);
+                }
+            };
+
+            /**
+             * Create MapLibre source + layers for a group.
+             */
+            function ensureGroupSourceAndLayers(name) {
+                const srcId = 'group-' + name;
+                const color = groupColorMap[name] || '#f59e0b';
+
+                if (!map.getSource(srcId)) {
+                    map.addSource(srcId, { type: 'geojson', data: emptyFC() });
+                }
+
+                if (!map.getLayer(srcId + '-circle')) {
+                    map.addLayer({
+                        id: srcId + '-circle',
+                        type: 'circle',
+                        source: srcId,
+                        filter: ['any', ['==', ['geometry-type'], 'Point'], ['==', ['geometry-type'], 'MultiPoint']],
+                        paint: {
+                            'circle-radius': ['interpolate', ['linear'], ['zoom'], 4, 3, 12, 6, 18, 9],
+                            'circle-color': color,
+                            'circle-stroke-color': '#ffffff',
+                            'circle-stroke-width': 1,
+                            'circle-opacity': 0.85
+                        }
+                    });
+                }
+
+                if (!map.getLayer(srcId + '-fill')) {
+                    map.addLayer({
+                        id: srcId + '-fill',
+                        type: 'fill',
+                        source: srcId,
+                        filter: ['any', ['==', ['geometry-type'], 'Polygon'], ['==', ['geometry-type'], 'MultiPolygon']],
+                        paint: { 'fill-color': color, 'fill-opacity': 0.3 }
+                    });
+                }
+
+                if (!map.getLayer(srcId + '-line')) {
+                    map.addLayer({
+                        id: srcId + '-line',
+                        type: 'line',
+                        source: srcId,
+                        filter: ['any',
+                            ['==', ['geometry-type'], 'LineString'], ['==', ['geometry-type'], 'MultiLineString'],
+                            ['==', ['geometry-type'], 'Polygon'], ['==', ['geometry-type'], 'MultiPolygon']],
+                        paint: { 'line-color': color, 'line-width': 1.5, 'line-opacity': 0.7 }
+                    });
+
+                    // Click handler for group features
+                    map.on('click', srcId + '-circle', (e) => {
+                        if (radiusMode) return;
+                        const props = e.features[0].properties || {};
+                        props._group = name;
+                        showFeatureInfo(e.features[0]);
+                    });
+                    map.on('click', srcId + '-fill', (e) => {
+                        if (radiusMode) return;
+                        const props = e.features[0].properties || {};
+                        props._group = name;
+                        showFeatureInfo(e.features[0]);
+                    });
+
+                    // Cursor
+                    for (const lid of [srcId + '-circle', srcId + '-fill']) {
+                        map.on('mouseenter', lid, () => { if (!radiusMode) map.getCanvas().style.cursor = 'pointer'; });
+                        map.on('mouseleave', lid, () => { map.getCanvas().style.cursor = radiusMode ? 'crosshair' : ''; });
+                    }
+                }
+            }
+
+            /**
+             * Remove MapLibre source + layers for a group.
+             */
+            function removeGroupSourceAndLayers(name) {
+                const srcId = 'group-' + name;
+                for (const suffix of ['-circle', '-fill', '-line']) {
+                    if (map.getLayer(srcId + suffix)) map.removeLayer(srcId + suffix);
+                }
+                if (map.getSource(srcId)) map.removeSource(srcId);
+
+                // Reset count
+                const countEl = document.querySelector(`[data-group-count="${name}"]`);
+                if (countEl) countEl.textContent = '—';
+            }
+
+            /**
+             * Load features for a single group within the given bbox.
+             */
+            async function loadGroupFeatures(name, bbox) {
+                try {
+                    const res = await fetch(CTX + '/api/layergroups/' + encodeURIComponent(name) + '/features', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            minLon: bbox.minLon, minLat: bbox.minLat,
+                            maxLon: bbox.maxLon, maxLat: bbox.maxLat,
+                            limit: MAX_FEATURES, offset: 0
+                        })
+                    });
+
+                    const data = await res.json();
+                    const srcId = 'group-' + name;
+
+                    if (!data.success || !data.rows) {
+                        safeSetData(srcId, emptyFC());
+                        return;
+                    }
+
+                    const fc = featureRowsToGeoJSON(data.rows);
+                    safeSetData(srcId, fc);
+
+                    // Update count badge
+                    const countEl = document.querySelector(`[data-group-count="${name}"]`);
+                    if (countEl) countEl.textContent = fc.features.length.toLocaleString();
+                } catch (e) {
+                    if (e.name !== 'AbortError') console.warn('Group load error (' + name + '):', e);
+                }
+            }
+
+            /**
+             * Reload features for all currently active group overlays.
+             */
+            function reloadActiveGroups(bbox) {
+                for (const name of activeGroups) {
+                    loadGroupFeatures(name, bbox);
+                }
+            }
 
             // ── Utilities ─────────────────────────────────────────
 

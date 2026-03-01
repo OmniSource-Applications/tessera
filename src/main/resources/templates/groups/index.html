@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<th:block th:fragment="content">
+
+    <!-- Flash messages -->
+    <div th:if="${success}"
+         class="mb-6 rounded-lg bg-success/10 border border-success/20 px-4 py-3 text-sm text-success">
+        <span th:text="${success}">Success</span>
+    </div>
+    <div th:if="${error}"
+         class="mb-6 rounded-lg bg-danger/10 border border-danger/20 px-4 py-3 text-sm text-danger">
+        <span th:text="${error}">Error</span>
+    </div>
+
+    <!-- Create group -->
+    <div class="bg-surface border border-border rounded-xl p-6 mb-8">
+        <h2 class="text-lg font-semibold text-foreground mb-4">New Layer Group</h2>
+        <form th:action="@{/layergroups}" method="post" class="flex items-end gap-3">
+            <div class="flex-1">
+                <label for="name" class="block text-sm font-medium text-foreground mb-1.5">Name</label>
+                <input id="name" type="text" name="name" required
+                       placeholder="my-layer-group"
+                       pattern="[a-zA-Z0-9][a-zA-Z0-9_-]{0,63}"
+                       title="Letters, numbers, hyphens, underscores. Must start with a letter or number."
+                       class="w-full rounded-lg border border-input bg-background px-3.5 py-2.5 text-sm text-foreground
+                      placeholder:text-placeholder
+                      focus:outline-none focus:ring-2 focus:ring-ring/40 focus:border-primary
+                      hover:border-input-hover transition-colors"/>
+            </div>
+            <div class="flex-1">
+                <label for="description" class="block text-sm font-medium text-foreground mb-1.5">Description</label>
+                <input id="description" type="text" name="description"
+                       placeholder="Optional description"
+                       class="w-full rounded-lg border border-input bg-background px-3.5 py-2.5 text-sm text-foreground
+                      placeholder:text-placeholder
+                      focus:outline-none focus:ring-2 focus:ring-ring/40 focus:border-primary
+                      hover:border-input-hover transition-colors"/>
+            </div>
+            <button type="submit"
+                    class="rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground
+                     hover:bg-primary-hover active:scale-[0.98]
+                     focus:outline-none focus:ring-2 focus:ring-ring/40
+                     transition-all">
+                Create
+            </button>
+        </form>
+    </div>
+
+    <!-- Groups list -->
+    <div class="bg-surface border border-border rounded-xl overflow-hidden">
+
+        <!-- Empty state -->
+        <div th:if="${#lists.isEmpty(groups)}"
+             class="px-6 py-12 text-center">
+            <svg class="mx-auto h-10 w-10 text-muted mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                      d="M12 4.5L3.75 9.75 12 15l8.25-5.25zM3.75 14.25L12 19.5l8.25-5.25"/>
+            </svg>
+            <p class="text-sm text-muted">No layer groups yet. Create one above to get started.</p>
+        </div>
+
+        <!-- Table -->
+        <table th:if="${!#lists.isEmpty(groups)}" class="w-full text-sm text-left">
+            <thead class="border-b border-border">
+            <tr>
+                <th class="px-6 py-3 font-medium text-muted uppercase tracking-wide text-xs">Name</th>
+                <th class="px-6 py-3 font-medium text-muted uppercase tracking-wide text-xs">Description</th>
+                <th class="px-6 py-3 font-medium text-muted uppercase tracking-wide text-xs text-center">Members</th>
+                <th class="px-6 py-3 font-medium text-muted uppercase tracking-wide text-xs text-center">Status</th>
+                <th class="px-6 py-3 font-medium text-muted uppercase tracking-wide text-xs text-right">Actions</th>
+            </tr>
+            </thead>
+            <tbody class="divide-y divide-border">
+            <tr th:each="grp : ${groups}"
+                class="hover:bg-background/50 transition-colors">
+                <td class="px-6 py-4">
+                    <a th:href="@{/layergroups/{name}(name=${grp.name()})}"
+                       th:text="${grp.name()}"
+                       class="font-medium text-foreground hover:text-primary transition-colors">
+                        group-name
+                    </a>
+                </td>
+                <td class="px-6 py-4 text-muted" th:text="${grp.description()} ?: '—'">description</td>
+                <td class="px-6 py-4 text-center">
+                    <span class="inline-flex items-center rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-medium text-primary"
+                          th:text="${grp.members().size()}">0</span>
+                </td>
+                <td class="px-6 py-4 text-center">
+                    <span th:if="${grp.active()}"
+                          class="inline-flex items-center rounded-full bg-success/10 px-2.5 py-0.5 text-xs font-medium text-success">
+                        Active
+                    </span>
+                    <span th:unless="${grp.active()}"
+                          class="inline-flex items-center rounded-full bg-muted/10 px-2.5 py-0.5 text-xs font-medium text-muted">
+                        Inactive
+                    </span>
+                </td>
+                <td class="px-6 py-4 text-right space-x-2">
+                    <a th:href="@{/layergroups/{name}(name=${grp.name()})}"
+                       class="rounded-lg px-3 py-1.5 text-xs font-medium
+                          text-primary hover:bg-primary/10 transition-colors">
+                        View
+                    </a>
+                    <form th:action="@{/layergroups/{name}/delete(name=${grp.name()})}" method="post"
+                          class="inline"
+                          onsubmit="return confirm('Delete layer group \'' + this.dataset.name + '\'?');"
+                          th:attr="data-name=${grp.name()}">
+                        <button type="submit"
+                                class="rounded-lg px-3 py-1.5 text-xs font-medium
+                             text-danger hover:bg-danger/10 transition-colors">
+                            Delete
+                        </button>
+                    </form>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+
+    </div>
+
+</th:block>
+
+</body>
+</html>

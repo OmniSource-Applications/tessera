@@ -37,4 +37,9 @@ public class SqlIdentifiers {
     public static boolean isSafe(String identifier) {
         return identifier != null && SAFE_IDENTIFIER.matcher(identifier).matches();
     }
+
+    public static String quoteIdent(String ident) {
+        if (ident == null || ident.isBlank()) throw new IllegalArgumentException("blank ident");
+        return "\"" + ident.replace("\"", "\"\"") + "\"";
+    }
 }

@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<th:block th:fragment="content">
+
+    <!-- Flash messages -->
+    <div th:if="${success}"
+         class="mb-6 rounded-lg bg-success/10 border border-success/20 px-4 py-3 text-sm text-success">
+        <span th:text="${success}">Success</span>
+    </div>
+    <div th:if="${error}"
+         class="mb-6 rounded-lg bg-danger/10 border border-danger/20 px-4 py-3 text-sm text-danger">
+        <span th:text="${error}">Error</span>
+    </div>
+
+    <!-- Back link -->
+    <div class="mb-6">
+        <a th:href="@{/layergroups}"
+           class="inline-flex items-center gap-1.5 text-sm text-muted hover:text-foreground transition-colors">
+            <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5"/>
+            </svg>
+            All Layer Groups
+        </a>
+    </div>
+
+    <!-- Group info card -->
+    <div class="bg-surface border border-border rounded-xl p-6 mb-8">
+        <div class="flex items-start justify-between mb-4">
+            <div>
+                <h2 class="text-lg font-semibold text-foreground" th:text="${group.name()}">group-name</h2>
+                <p th:if="${group.description() != null && !group.description().isEmpty()}"
+                   class="text-sm text-muted mt-1" th:text="${group.description()}">description</p>
+            </div>
+
+            <!-- Active toggle -->
+            <form th:action="@{/layergroups/{name}/toggle(name=${group.name()})}" method="post">
+                <input type="hidden" name="active" th:value="${!group.active()}"/>
+                <button type="submit"
+                        th:class="${group.active()}
+                            ? 'inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium bg-success/10 text-success hover:bg-success/20 transition-colors'
+                            : 'inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium bg-muted/10 text-muted hover:bg-muted/20 transition-colors'">
+                    <span class="h-1.5 w-1.5 rounded-full"
+                          th:classappend="${group.active()} ? 'bg-success' : 'bg-muted'"></span>
+                    <span th:text="${group.active()} ? 'Active' : 'Inactive'">Active</span>
+                </button>
+            </form>
+        </div>
+
+        <div class="grid grid-cols-3 gap-4 text-xs">
+            <div>
+                <span class="text-muted">Members</span>
+                <p class="font-medium text-foreground mt-0.5" th:text="${group.members().size()}">0</p>
+            </div>
+            <div>
+                <span class="text-muted">Created</span>
+                <p class="font-medium text-foreground mt-0.5 font-mono text-[0.7rem]"
+                   th:text="${group.createdAt() != null} ? ${group.createdAt()} : '—'">—</p>
+            </div>
+            <div>
+                <span class="text-muted">Updated</span>
+                <p class="font-medium text-foreground mt-0.5 font-mono text-[0.7rem]"
+                   th:text="${group.updatedAt() != null} ? ${group.updatedAt()} : '—'">—</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add member -->
+    <div class="bg-surface border border-border rounded-xl p-6 mb-8">
+        <h3 class="text-sm font-semibold text-foreground uppercase tracking-wide mb-4">Add Layer</h3>
+
+        <div th:if="${#lists.isEmpty(availableLayers)}"
+             class="text-sm text-muted">
+            No additional layers available. Create and sync layers in a workspace first.
+        </div>
+
+        <form th:unless="${#lists.isEmpty(availableLayers)}"
+              th:action="@{/layergroups/{name}/members(name=${group.name()})}"
+              method="post"
+              class="flex items-end gap-3">
+            <div class="flex-1">
+                <label for="layerPath" class="block text-sm font-medium text-foreground mb-1.5">Layer</label>
+                <select id="layerPath" name="layerPath" required
+                        class="w-full rounded-lg border border-input bg-background px-3.5 py-2.5 text-sm text-foreground
+                       focus:outline-none focus:ring-2 focus:ring-ring/40 focus:border-primary
+                       hover:border-input-hover transition-colors">
+                    <option value="" disabled selected>Select a layer…</option>
+                    <option th:each="ly : ${availableLayers}"
+                            th:value="${ly.workspace() + '/' + ly.datastore() + '/' + ly.layer()}"
+                            th:text="${ly.workspace() + ' / ' + ly.datastore() + ' / ' + ly.layer()}">
+                        workspace / datastore / layer
+                    </option>
+                </select>
+            </div>
+            <button type="submit"
+                    class="rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground
+                     hover:bg-primary-hover active:scale-[0.98]
+                     focus:outline-none focus:ring-2 focus:ring-ring/40
+                     transition-all">
+                Add
+            </button>
+        </form>
+    </div>
+
+    <!-- Members table -->
+    <div class="bg-surface border border-border rounded-xl overflow-hidden">
+        <div class="px-6 py-3 border-b border-border">
+            <h3 class="text-sm font-semibold text-foreground uppercase tracking-wide">Members</h3>
+        </div>
+
+        <!-- Empty state -->
+        <div th:if="${group.members().isEmpty()}"
+             class="px-6 py-12 text-center">
+            <svg class="mx-auto h-10 w-10 text-muted mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                      d="M12 4.5L3.75 9.75 12 15l8.25-5.25zM3.75 14.25L12 19.5l8.25-5.25"/>
+            </svg>
+            <p class="text-sm text-muted">No members yet. Add layers above to build this group.</p>
+        </div>
+
+        <!-- Table -->
+        <table th:unless="${group.members().isEmpty()}" class="w-full text-sm text-left">
+            <thead class="border-b border-border">
+            <tr>
+                <th class="px-6 py-3 font-medium text-muted uppercase tracking-wide text-xs">Layer</th>
+                <th class="px-6 py-3 font-medium text-muted uppercase tracking-wide text-xs">Datastore</th>
+                <th class="px-6 py-3 font-medium text-muted uppercase tracking-wide text-xs">Workspace</th>
+                <th class="px-6 py-3 font-medium text-muted uppercase tracking-wide text-xs">Source Table</th>
+                <th class="px-6 py-3 font-medium text-muted uppercase tracking-wide text-xs">Source ID</th>
+                <th class="px-6 py-3 font-medium text-muted uppercase tracking-wide text-xs text-right">Actions</th>
+            </tr>
+            </thead>
+            <tbody class="divide-y divide-border">
+            <tr th:each="member : ${group.members()}"
+                class="hover:bg-background/50 transition-colors">
+                <td class="px-6 py-4">
+                    <a th:href="@{/workspaces/{ws}/datastores/{ds}/layers/{ly}(ws=${member.workspace()}, ds=${member.datastore()}, ly=${member.layer()})}"
+                       th:text="${member.layer()}"
+                       class="font-medium text-foreground hover:text-primary transition-colors">
+                        layer
+                    </a>
+                </td>
+                <td class="px-6 py-4">
+                    <a th:href="@{/workspaces/{ws}/datastores/{ds}(ws=${member.workspace()}, ds=${member.datastore()})}"
+                       th:text="${member.datastore()}"
+                       class="text-foreground hover:text-primary transition-colors">
+                        datastore
+                    </a>
+                </td>
+                <td class="px-6 py-4">
+                    <a th:href="@{/workspaces/{ws}(ws=${member.workspace()})}"
+                       th:text="${member.workspace()}"
+                       class="text-muted hover:text-foreground transition-colors">
+                        workspace
+                    </a>
+                </td>
+                <td class="px-6 py-4">
+                    <code class="text-xs font-mono text-muted bg-background rounded px-1.5 py-0.5"
+                          th:text="${member.sourceTable()}">public.roads</code>
+                </td>
+                <td class="px-6 py-4">
+                    <code class="text-xs font-mono text-muted bg-background rounded px-1.5 py-0.5"
+                          th:text="${#strings.abbreviate(member.sourceId(), 13)}">a1b2c3d4…</code>
+                </td>
+                <td class="px-6 py-4 text-right">
+                    <form th:action="@{/layergroups/{name}/members/remove(name=${group.name()})}" method="post"
+                          class="inline"
+                          onsubmit="return confirm('Remove this layer from the group?');">
+                        <input type="hidden" name="workspace" th:value="${member.workspace()}"/>
+                        <input type="hidden" name="datastore" th:value="${member.datastore()}"/>
+                        <input type="hidden" name="layer" th:value="${member.layer()}"/>
+                        <button type="submit"
+                                class="rounded-lg px-3 py-1.5 text-xs font-medium
+                             text-danger hover:bg-danger/10 transition-colors">
+                            Remove
+                        </button>
+                    </form>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+</th:block>
+
+</body>
+</html>
