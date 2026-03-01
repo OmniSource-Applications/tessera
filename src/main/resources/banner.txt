@@ -1,0 +1,14 @@
+    .
+  .o8
+.o888oo  .ooooo.   .oooo.o  .oooo.o  .ooooo.  oooo d8b  .oooo.
+  888   d88' `88b d88(  "8 d88(  "8 d88' `88b `888""8P `P  )88b
+  888   888ooo888 `"Y88b.  `"Y88b.  888ooo888  888      .oP"888
+  888 . 888    .o o.  )88b o.  )88b 888    .o  888     d8(  888
+  "888" `Y8bod8P' 8""888P' 8""888P' `Y8bod8P' d888b    `Y888""8o
+
+::          tessera         ::      (${application.version})
+::          H3              ::      (${tessera.tags.h3.version})
+::          JTS             ::      (${tessera.tags.jts.version})
+::          Spring Boot     ::      (${spring-boot.version})
+
+

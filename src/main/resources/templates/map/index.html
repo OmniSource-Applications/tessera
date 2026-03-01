@@ -1,0 +1,1003 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<th:block th:fragment="content">
+
+    <!-- MapLibre GL JS + h3-js CDN -->
+    <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@4/dist/maplibre-gl.css"/>
+    <script src="https://unpkg.com/maplibre-gl@4/dist/maplibre-gl.js"></script>
+    <script src="https://unpkg.com/h3-js@4.1.0/dist/h3-js.umd.js"></script>
+
+    <!-- Full-bleed map container (negates layout padding) -->
+    <div class="-mx-4 sm:-mx-2 lg:-mx-4 -my-8 relative" style="height: calc(100vh - 8.5rem);">
+
+        <!-- Map -->
+        <div id="map" style="height: 100%; width: 100%;"></div>
+
+        <!-- ── Controls Panel (top-left) ─────────────────────── -->
+        <div id="controls"
+             class="absolute top-3 left-3 z-10 bg-surface/95 backdrop-blur border border-border
+                rounded-xl shadow-lg w-64 text-sm overflow-hidden">
+
+            <!-- Header -->
+            <div class="px-4 py-3 border-b border-border flex items-center justify-between">
+                <span class="font-semibold text-foreground text-xs uppercase tracking-wide">Layers</span>
+                <button onclick="togglePanel('controls-body')"
+                        class="text-muted hover:text-foreground transition-colors">
+                    <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 15.75 7.5-7.5 7.5 7.5"/>
+                    </svg>
+                </button>
+            </div>
+
+            <div id="controls-body" class="px-4 py-3 space-y-3">
+
+                <!-- H3 Hex Density toggle -->
+                <label class="flex items-center gap-2.5 cursor-pointer group">
+                    <input type="checkbox" id="toggle-hex" checked
+                           onchange="toggleLayer('hex', this.checked)"
+                           class="rounded border-border text-primary focus:ring-primary">
+                    <span class="flex-1 text-foreground group-hover:text-primary transition-colors">H3 Density Grid</span>
+                    <span id="hex-count" class="text-[0.65rem] text-muted font-mono">—</span>
+                </label>
+
+                <!-- Features toggle -->
+                <label class="flex items-center gap-2.5 cursor-pointer group">
+                    <input type="checkbox" id="toggle-features" checked
+                           onchange="toggleLayer('features', this.checked)"
+                           class="rounded border-border text-primary focus:ring-primary">
+                    <span class="flex-1 text-foreground group-hover:text-primary transition-colors">Features</span>
+                    <span id="features-count" class="text-[0.65rem] text-muted font-mono">—</span>
+                </label>
+
+                <!-- Radius Search toggle -->
+                <label class="flex items-center gap-2.5 cursor-pointer group">
+                    <input type="checkbox" id="toggle-radius"
+                           onchange="toggleRadiusMode(this.checked)"
+                           class="rounded border-border text-accent focus:ring-accent">
+                    <span class="flex-1 text-foreground group-hover:text-accent transition-colors">Radius Search</span>
+                </label>
+
+                <!-- Radius slider (shown when radius mode active) -->
+                <div id="radius-controls" class="hidden pl-6 space-y-1.5">
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs text-muted">Radius</span>
+                        <span id="radius-value" class="text-xs font-mono text-foreground">500m</span>
+                    </div>
+                    <input type="range" id="radius-slider" min="100" max="10000" value="500" step="100"
+                           oninput="document.getElementById('radius-value').textContent = this.value + 'm'"
+                           class="w-full accent-accent">
+                </div>
+
+                <hr class="border-border"/>
+
+                <!-- Source filter -->
+                <div>
+                    <label class="block text-xs text-muted mb-1.5">Source filter</label>
+                    <select id="source-filter" onchange="onSourceFilterChange()"
+                            class="w-full rounded-lg border border-border bg-background px-2.5 py-1.5
+                               text-xs text-foreground">
+                        <option value="">All sources</option>
+                        <option th:each="src : ${sources}" th:value="${src.get('id')}"
+                                th:text="${src.get('name')}">source</option>
+                    </select>
+                </div>
+
+                <!-- H3 Resolution -->
+                <div>
+                    <label class="block text-xs text-muted mb-1.5">H3 Resolution</label>
+                    <select id="h3-resolution"
+                            onchange="reloadHexGrid()"
+                            class="w-full rounded-lg border border-border bg-background px-2.5 py-1.5
+                               text-xs text-foreground">
+                        <option value="7" selected>7 (coarse ~5km)</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- ── Legend (bottom-left) ───────────────────────────── -->
+        <div id="legend"
+             class="absolute bottom-6 left-3 z-10 bg-surface/95 backdrop-blur border border-border
+                rounded-xl shadow-lg px-4 py-3">
+            <p class="text-[0.65rem] text-muted font-semibold uppercase tracking-wide mb-2">Feature Density</p>
+            <div class="flex items-center gap-1">
+                <span class="text-[0.6rem] text-muted">Low</span>
+                <div class="flex h-3 rounded-sm overflow-hidden">
+                    <div class="w-6" style="background:#2b1a5e"></div>
+                    <div class="w-6" style="background:#3c3d99"></div>
+                    <div class="w-6" style="background:#2596be"></div>
+                    <div class="w-6" style="background:#57c785"></div>
+                    <div class="w-6" style="background:#f2e05a"></div>
+                    <div class="w-6" style="background:#f07c44"></div>
+                    <div class="w-6" style="background:#d62839"></div>
+                </div>
+                <span class="text-[0.6rem] text-muted">High</span>
+            </div>
+        </div>
+
+        <!-- ── Info Panel (right side, shown on feature click) ── -->
+        <div id="info-panel"
+             class="hidden absolute top-3 right-3 z-10 bg-surface/95 backdrop-blur border border-border
+                rounded-xl shadow-lg w-80 max-h-[70vh] overflow-hidden flex flex-col">
+            <div class="px-4 py-3 border-b border-border flex items-center justify-between shrink-0">
+                <span class="font-semibold text-foreground text-xs uppercase tracking-wide">Feature Details</span>
+                <button onclick="closeInfoPanel()"
+                        class="text-muted hover:text-foreground transition-colors">
+                    <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+            <div id="info-content" class="px-4 py-3 overflow-y-auto text-xs space-y-2"></div>
+        </div>
+
+        <!-- ── Loading indicator ─────────────────────────────── -->
+        <div id="loading"
+             class="hidden absolute top-3 left-1/2 -translate-x-1/2 z-10
+                bg-surface/95 backdrop-blur border border-border rounded-full
+                shadow-lg px-4 py-2 text-xs text-muted flex items-center gap-2">
+            <svg class="animate-spin h-3.5 w-3.5 text-primary" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+            </svg>
+            Loading…
+        </div>
+
+        <!-- ── Radius mode cursor hint ───────────────────────── -->
+        <div id="radius-hint"
+             class="hidden absolute bottom-6 left-1/2 -translate-x-1/2 z-10
+                bg-accent/90 text-white rounded-full px-4 py-2 text-xs font-medium shadow-lg">
+            Click on the map to search within radius
+        </div>
+
+    </div>
+
+    <!-- ── Map JavaScript ──────────────────────────────────── -->
+    <script th:inline="javascript">
+        (function() {
+            'use strict';
+
+            // ── Config ───────────────────────────────────────────
+            const CTX = /*[[${contextPath}]]*/ '/tessera';
+            const API = CTX + '/api/queries';
+            const DEBOUNCE_MS = 400;
+            const MAX_FEATURES = 2000;
+
+            // ── Basemap theme switching (Tailwind "dark" class) ──
+            const LIGHT_TILES = ['https://tile.openstreetmap.org/{z}/{x}/{y}.png'];
+            const DARK_TILES  = ['https://a.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png'];
+
+            let lastDarkApplied = null;
+
+            function isDarkMode() {
+                // Tailwind class strategy (either html or body)
+                const htmlDark = document.documentElement.classList.contains('dark');
+                const bodyDark = document.body && document.body.classList.contains('dark');
+
+                // Some theme systems use data-theme
+                const htmlTheme = document.documentElement.getAttribute('data-theme');
+                const bodyTheme = document.body && document.body.getAttribute('data-theme');
+
+                return htmlDark || bodyDark || htmlTheme === 'dark' || bodyTheme === 'dark';
+            }
+
+            function buildRasterStyle(dark) {
+                return {
+                    version: 8,
+                    sources: {
+                        'raster-base': {
+                            type: 'raster',
+                            tiles: dark ? DARK_TILES : LIGHT_TILES,
+                            tileSize: 256,
+                            attribution: dark
+                                ? '&copy; <a href="https://carto.com/attributions">CARTO</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+                                : '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+                        }
+                    },
+                    layers: [{
+                        id: 'raster-base',
+                        type: 'raster',
+                        source: 'raster-base',
+                        minzoom: 0,
+                        maxzoom: 19
+                    }]
+                };
+            }
+
+            // ── State ────────────────────────────────────────────
+            let map;
+            let radiusMode = false;
+            let radiusCircle = null;
+            let pendingRequests = { hex: null, features: null };
+
+            // Interactions are split to avoid duplicate handlers on theme swaps
+            let globalInteractionsReady = false;
+
+            // Color ramp for hex density (viridis-inspired)
+            const HEX_COLORS = [
+                [0,   '#2b1a5e'],
+                [5,   '#3c3d99'],
+                [15,  '#2596be'],
+                [40,  '#57c785'],
+                [100, '#f2e05a'],
+                [250, '#f07c44'],
+                [500, '#d62839']
+            ];
+
+            // ── Init Map ─────────────────────────────────────────
+            document.addEventListener('DOMContentLoaded', () => {
+
+                map = new maplibregl.Map({
+                    container: 'map',
+                    style: buildRasterStyle(isDarkMode()),
+                    center: [0, 20],
+                    zoom: 2,
+                    maxZoom: 18
+                });
+
+                map.addControl(new maplibregl.NavigationControl(), 'bottom-right');
+                map.addControl(new maplibregl.ScaleControl(), 'bottom-right');
+
+                map.on('load', () => {
+                    setupSources();
+                    setupLayers();
+                    setupGlobalInteractions();
+                    setupLayerInteractions();
+                    loadViewportData();
+                });
+
+                map.on('moveend', debounce(loadViewportData, DEBOUNCE_MS));
+
+                // Watch Tailwind dark mode toggles (html.class changes)
+                const html = document.documentElement;
+                const observer = new MutationObserver(() => {
+                    applyThemeStyle();
+                });
+                observer.observe(html, { attributes: true, attributeFilter: ['class'] });
+            });
+
+            function applyThemeStyle() {
+                if (!map) return;
+
+                const dark = isDarkMode();
+                if (lastDarkApplied === dark) return; // nothing to do
+                lastDarkApplied = dark;
+
+                const center = map.getCenter();
+                const zoom = map.getZoom();
+                const bearing = map.getBearing();
+                const pitch = map.getPitch();
+
+                map.setStyle(buildRasterStyle(dark));
+
+                map.once('styledata', () => {
+                    map.jumpTo({ center, zoom, bearing, pitch });
+                    setupSources();
+                    setupLayers();
+                    setupGlobalInteractions();
+                    setupLayerInteractions();
+                    loadViewportData();
+                });
+            }
+
+            // ── Sources & Layers ─────────────────────────────────
+
+            function setupSources() {
+                if (!map.getSource('hex-grid')) {
+                    map.addSource('hex-grid', { type: 'geojson', data: emptyFC() });
+                } else {
+                    map.getSource('hex-grid').setData(emptyFC());
+                }
+
+                if (!map.getSource('features')) {
+                    map.addSource('features', { type: 'geojson', data: emptyFC() });
+                } else {
+                    map.getSource('features').setData(emptyFC());
+                }
+
+                if (!map.getSource('radius-circle')) {
+                    map.addSource('radius-circle', { type: 'geojson', data: emptyFC() });
+                } else {
+                    map.getSource('radius-circle').setData(emptyFC());
+                }
+
+                if (!map.getSource('radius-results')) {
+                    map.addSource('radius-results', { type: 'geojson', data: emptyFC() });
+                } else {
+                    map.getSource('radius-results').setData(emptyFC());
+                }
+            }
+
+            function setupLayers() {
+                // remove any existing overlay layers before re-adding (style swaps)
+                for (const id of [
+                    'hex-fill','hex-outline',
+                    'features-circle','features-fill','features-line',
+                    'radius-circle-fill','radius-circle-line',
+                    'radius-results-circle'
+                ]) {
+                    if (map.getLayer(id)) map.removeLayer(id);
+                }
+
+                // H3 hex density fill
+                const colorExpr = ['interpolate', ['linear'], ['get', 'count']];
+                HEX_COLORS.forEach(([val, color]) => { colorExpr.push(val, color); });
+
+                map.addLayer({
+                    id: 'hex-fill',
+                    type: 'fill',
+                    source: 'hex-grid',
+                    paint: {
+                        'fill-color': colorExpr,
+                        'fill-opacity': 0.55
+                    }
+                });
+
+                map.addLayer({
+                    id: 'hex-outline',
+                    type: 'line',
+                    source: 'hex-grid',
+                    paint: {
+                        'line-color': '#ffffff',
+                        'line-width': 0.5,
+                        'line-opacity': 0.3
+                    }
+                });
+
+                // Feature points
+                map.addLayer({
+                    id: 'features-circle',
+                    type: 'circle',
+                    source: 'features',
+                    filter: ['any',
+                        ['==', ['geometry-type'], 'Point'],
+                        ['==', ['geometry-type'], 'MultiPoint']
+                    ],
+                    paint: {
+                        'circle-radius': ['interpolate', ['linear'], ['zoom'], 4, 2, 12, 5, 18, 8],
+                        'circle-color': '#6366f1',
+                        'circle-stroke-color': '#ffffff',
+                        'circle-stroke-width': 1,
+                        'circle-opacity': 0.85
+                    }
+                });
+
+                // Feature polygons
+                map.addLayer({
+                    id: 'features-fill',
+                    type: 'fill',
+                    source: 'features',
+                    filter: ['any',
+                        ['==', ['geometry-type'], 'Polygon'],
+                        ['==', ['geometry-type'], 'MultiPolygon']
+                    ],
+                    paint: {
+                        'fill-color': '#6366f1',
+                        'fill-opacity': 0.3
+                    }
+                });
+
+                map.addLayer({
+                    id: 'features-line',
+                    type: 'line',
+                    source: 'features',
+                    filter: ['any',
+                        ['==', ['geometry-type'], 'LineString'],
+                        ['==', ['geometry-type'], 'MultiLineString'],
+                        ['==', ['geometry-type'], 'Polygon'],
+                        ['==', ['geometry-type'], 'MultiPolygon']
+                    ],
+                    paint: {
+                        'line-color': '#6366f1',
+                        'line-width': 1.5,
+                        'line-opacity': 0.7
+                    }
+                });
+
+                // Radius search circle
+                map.addLayer({
+                    id: 'radius-circle-fill',
+                    type: 'fill',
+                    source: 'radius-circle',
+                    paint: {
+                        'fill-color': '#f59e0b',
+                        'fill-opacity': 0.1
+                    }
+                });
+
+                map.addLayer({
+                    id: 'radius-circle-line',
+                    type: 'line',
+                    source: 'radius-circle',
+                    paint: {
+                        'line-color': '#f59e0b',
+                        'line-width': 2,
+                        'line-dasharray': [3, 2]
+                    }
+                });
+
+                // Radius result points
+                map.addLayer({
+                    id: 'radius-results-circle',
+                    type: 'circle',
+                    source: 'radius-results',
+                    paint: {
+                        'circle-radius': 6,
+                        'circle-color': '#f59e0b',
+                        'circle-stroke-color': '#ffffff',
+                        'circle-stroke-width': 1.5,
+                        'circle-opacity': 0.9
+                    }
+                });
+            }
+
+            // ── Interactions ──────────────────────────────────────
+
+            function setupGlobalInteractions() {
+                if (globalInteractionsReady) return;
+                globalInteractionsReady = true;
+
+                // Radius search click (map-level)
+                map.on('click', (e) => {
+                    if (!radiusMode) return;
+                    const radius = parseInt(document.getElementById('radius-slider').value);
+                    executeRadiusSearch(e.lngLat.lng, e.lngLat.lat, radius);
+                });
+            }
+
+            function setupLayerInteractions() {
+                // Click on hex cell → show density info
+                map.on('click', 'hex-fill', (e) => {
+                    if (radiusMode) return;
+                    const props = e.features[0].properties;
+                    showInfoPanel('H3 Cell', {
+                        'H3 Index': props.h3Index,
+                        'Feature Count': props.count,
+                        'Last Updated': props.lastUpdated || '—'
+                    });
+                });
+
+                // Click on feature → show details
+                map.on('click', 'features-circle', (e) => {
+                    if (radiusMode) return;
+                    showFeatureInfo(e.features[0]);
+                });
+                map.on('click', 'features-fill', (e) => {
+                    if (radiusMode) return;
+                    showFeatureInfo(e.features[0]);
+                });
+
+                // Cursor changes
+                for (const layerId of ['hex-fill', 'features-circle', 'features-fill']) {
+                    map.on('mouseenter', layerId, () => {
+                        if (!radiusMode) map.getCanvas().style.cursor = 'pointer';
+                    });
+                    map.on('mouseleave', layerId, () => {
+                        map.getCanvas().style.cursor = radiusMode ? 'crosshair' : '';
+                    });
+                }
+
+                // Click on radius result → show details
+                map.on('click', 'radius-results-circle', (e) => {
+                    showFeatureInfo(e.features[0]);
+                });
+            }
+
+            // ── Data Loading ─────────────────────────────────────
+
+            async function loadViewportData() {
+                const bounds = map.getBounds();
+                const params = {
+                    minLon: bounds.getWest(),
+                    minLat: bounds.getSouth(),
+                    maxLon: bounds.getEast(),
+                    maxLat: bounds.getNorth()
+                };
+
+                const sourceId = document.getElementById('source-filter').value || null;
+
+                if (document.getElementById('toggle-hex').checked) {
+                    loadHexDensity(params);
+                }
+                if (document.getElementById('toggle-features').checked) {
+                    loadFeatures(params, sourceId);
+                }
+            }
+
+            async function loadHexDensity(bbox) {
+                if (pendingRequests.hex) pendingRequests.hex.abort();
+                const controller = new AbortController();
+                pendingRequests.hex = controller;
+
+                showLoading(true);
+                try {
+                    const res = await fetch(API + '/h3.density_grid/execute', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            minLon: bbox.minLon, minLat: bbox.minLat,
+                            maxLon: bbox.maxLon, maxLat: bbox.maxLat,
+                            limit: 5000
+                        }),
+                        signal: controller.signal
+                    });
+
+                    const data = await res.json();
+                    if (!data.success || !data.rows) {
+                        map.getSource('hex-grid').setData(emptyFC());
+                        updateCount('hex', 0);
+                        return;
+                    }
+
+                    const fc = hexRowsToGeoJSON(data.rows);
+                    safeSetData('hex-grid', fc);
+                    updateCount('hex', fc.features.length);
+                } catch (e) {
+                    if (e.name !== 'AbortError') console.warn('Hex load error:', e);
+                } finally {
+                    showLoading(false);
+                    pendingRequests.hex = null;
+                }
+            }
+
+            async function loadFeatures(bbox, sourceId) {
+                if (pendingRequests.features) pendingRequests.features.abort();
+                const controller = new AbortController();
+                pendingRequests.features = controller;
+
+                showLoading(true);
+                try {
+                    const body = {
+                        minLon: bbox.minLon, minLat: bbox.minLat,
+                        maxLon: bbox.maxLon, maxLat: bbox.maxLat,
+                        limit: MAX_FEATURES, offset: 0
+                    };
+                    if (sourceId) body.sourceId = sourceId;
+
+                    const res = await fetch(API + '/features.by_bbox/execute', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(body),
+                        signal: controller.signal
+                    });
+
+                    const data = await res.json();
+                    if (!data.success || !data.rows) {
+                        map.getSource('features').setData(emptyFC());
+                        updateCount('features', 0);
+                        return;
+                    }
+
+                    const fc = featureRowsToGeoJSON(data.rows);
+                    safeSetData('features', fc);
+                    updateCount('features', fc.features.length);
+                } catch (e) {
+                    if (e.name !== 'AbortError') console.warn('Features load error:', e);
+                } finally {
+                    showLoading(false);
+                    pendingRequests.features = null;
+                }
+            }
+
+            async function executeRadiusSearch(lng, lat, radiusMeters) {
+                showLoading(true);
+
+                // Draw the search circle
+                const circle = createCircleGeoJSON(lng, lat, radiusMeters);
+                safeSetData('radius-circle', circle);
+
+                try {
+                    const res = await fetch(API + '/features.within_radius/execute', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            lon: lng, lat: lat,
+                            radiusMeters: radiusMeters,
+                            limit: 500
+                        })
+                    });
+
+                    const data = await res.json();
+                    if (!data.success || !data.rows) {
+                        map.getSource('radius-results').setData(emptyFC());
+                        return;
+                    }
+
+                    const fc = featureRowsToGeoJSON(data.rows);
+                    safeSetData('radius-results', fc);
+
+                    showInfoPanel('Radius Search', {
+                        'Center': `${lat.toFixed(5)}, ${lng.toFixed(5)}`,
+                        'Radius': radiusMeters + 'm',
+                        'Results': data.rows.length + ' features'
+                    });
+                } catch (e) {
+                    console.warn('Radius search error:', e);
+                } finally {
+                    showLoading(false);
+                }
+            }
+
+            // ── GeoJSON Builders ─────────────────────────────────
+
+            function hexRowsToGeoJSON(rows) {
+                if (!Array.isArray(rows)) return emptyFC();
+
+                const features = [];
+                for (const row of rows) {
+                    const h3Index = row.h3_index;
+                    if (!h3Index) continue;
+
+                    try {
+                        const boundary = h3.cellToBoundary(h3Index);
+                        const coords = boundary.map(([lat, lng]) => [Number(lng), Number(lat)]);
+                        if (coords.length === 0) continue;
+                        coords.push(coords[0]);
+
+                        features.push({
+                            type: 'Feature',
+                            properties: {
+                                h3Index: h3Index,
+                                count: row.feature_count || 0,
+                                lastUpdated: row.last_updated || null
+                            },
+                            geometry: { type: 'Polygon', coordinates: [coords] }
+                        });
+                    } catch {
+                        // skip invalid h3 index
+                    }
+                }
+                return { type: 'FeatureCollection', features };
+            }
+
+            function featureRowsToGeoJSON(rows) {
+                if (!Array.isArray(rows)) return emptyFC();
+
+                const features = [];
+                let badExample = null;
+                let skipped = 0;
+
+                for (const row of rows) {
+                    const geom = normalizeToGeometry(row.geometry || row.geometry_json);
+
+                    if (!geom || !validateGeometry(geom)) {
+                        skipped++;
+                        if (!badExample) {
+                            badExample = {
+                                id: row.id,
+                                geometry: row.geometry,
+                                geometry_json: row.geometry_json
+                            };
+                        }
+                        continue;
+                    }
+
+                    const props = {};
+                    props.id = row.id;
+                    props.externalId = row.external_id;
+                    props.sourceTable = row.source_table;
+                    props.updatedAt = row.updated_at;
+
+                    let attrs = row.attributes;
+                    if (typeof attrs === 'string') {
+                        try { attrs = JSON.parse(attrs); } catch { attrs = {}; }
+                    }
+                    if (attrs && typeof attrs === 'object') {
+                        Object.assign(props, attrs);
+                    }
+
+                    if (row.distance_m != null) {
+                        props.distance_m = Math.round(row.distance_m);
+                    }
+
+                    features.push({
+                        type: 'Feature',
+                        properties: props,
+                        geometry: geom
+                    });
+                }
+
+                // Helpful debug (won’t break anything)
+                if (skipped > 0) {
+                    console.warn(`featureRowsToGeoJSON: kept=${features.length}, skipped=${skipped}`, badExample);
+                }
+
+                return { type: 'FeatureCollection', features };
+            }
+
+            function createCircleGeoJSON(lng, lat, radiusMeters) {
+                const points = 64;
+                const coords = [];
+                const earthRadius = 6371000;
+
+                for (let i = 0; i <= points; i++) {
+                    const angle = (i / points) * 2 * Math.PI;
+                    const dx = radiusMeters * Math.cos(angle);
+                    const dy = radiusMeters * Math.sin(angle);
+
+                    const dLat = dy / earthRadius * (180 / Math.PI);
+                    const dLng = dx / (earthRadius * Math.cos(lat * Math.PI / 180)) * (180 / Math.PI);
+
+                    coords.push([lng + dLng, lat + dLat]);
+                }
+
+                return {
+                    type: 'FeatureCollection',
+                    features: [{
+                        type: 'Feature',
+                        geometry: { type: 'Polygon', coordinates: [coords] },
+                        properties: {}
+                    }]
+                };
+            }
+
+            // ── UI Helpers ────────────────────────────────────────
+
+            function showFeatureInfo(feature) {
+                const props = feature.properties || {};
+                const display = {};
+
+                // Show important fields first
+                if (props.id) display['ID'] = props.id;
+                if (props.externalId) display['External ID'] = props.externalId;
+                if (props.sourceTable) display['Source'] = props.sourceTable;
+                if (props.distance_m != null) display['Distance'] = props.distance_m + 'm';
+                if (props.updatedAt) display['Updated'] = props.updatedAt;
+
+                // Then all other attributes
+                for (const [k, v] of Object.entries(props)) {
+                    if (['id', 'externalId', 'sourceTable', 'distance_m', 'updatedAt'].includes(k)) continue;
+                    if (v != null && v !== '') display[k] = v;
+                }
+
+                showInfoPanel('Feature', display);
+            }
+
+            function showInfoPanel(title, entries) {
+                const panel = document.getElementById('info-panel');
+                const content = document.getElementById('info-content');
+
+                let html = `<p class="text-xs font-semibold text-primary mb-2">${escHtml(title)}</p>`;
+                for (const [k, v] of Object.entries(entries)) {
+                    const val = typeof v === 'object' ? JSON.stringify(v) : String(v);
+                    html += `<div class="flex justify-between gap-3 py-1 border-b border-border/50">
+                        <span class="text-muted shrink-0">${escHtml(k)}</span>
+                        <span class="text-foreground text-right font-mono truncate" title="${escHtml(val)}">${escHtml(val)}</span>
+                      </div>`;
+                }
+                content.innerHTML = html;
+                panel.classList.remove('hidden');
+            }
+
+            function closeInfoPanel() {
+                document.getElementById('info-panel').classList.add('hidden');
+            }
+
+            // ── Layer toggles ────────────────────────────────────
+
+            window.toggleLayer = function(layer, visible) {
+                const vis = visible ? 'visible' : 'none';
+                if (layer === 'hex') {
+                    if (map.getLayer('hex-fill')) map.setLayoutProperty('hex-fill', 'visibility', vis);
+                    if (map.getLayer('hex-outline')) map.setLayoutProperty('hex-outline', 'visibility', vis);
+                } else if (layer === 'features') {
+                    if (map.getLayer('features-circle')) map.setLayoutProperty('features-circle', 'visibility', vis);
+                    if (map.getLayer('features-fill')) map.setLayoutProperty('features-fill', 'visibility', vis);
+                    if (map.getLayer('features-line')) map.setLayoutProperty('features-line', 'visibility', vis);
+                }
+                if (visible) loadViewportData();
+            };
+
+            window.toggleRadiusMode = function(enabled) {
+                radiusMode = enabled;
+                document.getElementById('radius-controls').classList.toggle('hidden', !enabled);
+                document.getElementById('radius-hint').classList.toggle('hidden', !enabled);
+                map.getCanvas().style.cursor = enabled ? 'crosshair' : '';
+
+                if (!enabled) {
+                    // Clear radius results
+                    if (map.getSource('radius-circle')) map.getSource('radius-circle').setData(emptyFC());
+                    if (map.getSource('radius-results')) map.getSource('radius-results').setData(emptyFC());
+                }
+            };
+
+            window.togglePanel = function(id) {
+                document.getElementById(id).classList.toggle('hidden');
+            };
+
+            window.onSourceFilterChange = function() {
+                loadViewportData();
+            };
+
+            window.reloadHexGrid = function() {
+                loadViewportData();
+            };
+
+            // ── Utilities ─────────────────────────────────────────
+
+            function isValidFeatureCollection(fc) {
+                return fc
+                    && typeof fc === 'object'
+                    && fc.type === 'FeatureCollection'
+                    && Array.isArray(fc.features);
+            }
+
+            function safeSetData(sourceId, fc) {
+                if (!isValidFeatureCollection(fc)) {
+                    console.error(`[GeoJSON] INVALID setData for source="${sourceId}"`, fc);
+                    // fail closed so MapLibre doesn't throw
+                    fc = emptyFC();
+                }
+
+                const src = map.getSource(sourceId);
+                if (!src) {
+                    console.warn(`[GeoJSON] source missing: "${sourceId}" (style swap / timing?)`);
+                    return;
+                }
+
+                try {
+                    src.setData(fc);
+                } catch (e) {
+                    console.error(`[GeoJSON] setData threw for source="${sourceId}"`, e, fc);
+                    // keep map alive
+                    try { src.setData(emptyFC()); } catch {}
+                }
+            }
+
+            function coerceGeoJsonValue(v) {
+                if (v == null) return null;
+
+                // Handle wrapped JSONB objects coming from some serializers:
+                // { null: false, type: "jsonb", value: "{...}" }
+                if (typeof v === 'object') {
+                    if ('value' in v && (typeof v.value === 'string' || typeof v.value === 'object')) {
+                        v = v.value;
+                    } else if ('val' in v && (typeof v.val === 'string' || typeof v.val === 'object')) {
+                        v = v.val;
+                    } else if ('json' in v && (typeof v.json === 'string' || typeof v.json === 'object')) {
+                        v = v.json;
+                    }
+                }
+
+                if (typeof v === 'string') {
+                    try { return JSON.parse(v); } catch { return null; }
+                }
+
+                // If it is already an object (post-parse), return it
+                if (typeof v === 'object') return v;
+
+                return null;
+            }
+
+            function toNumberMaybe(x) {
+                if (typeof x === 'number') return x;
+                if (typeof x === 'string' && x.trim() !== '') {
+                    const n = Number(x);
+                    return Number.isFinite(n) ? n : x;
+                }
+                return x;
+            }
+
+            function normalizeCoords(coords) {
+                if (Array.isArray(coords)) {
+                    return coords.map(normalizeCoords);
+                }
+                return toNumberMaybe(coords);
+            }
+
+            function stripUnsupportedGeoJson(obj) {
+                if (!obj || typeof obj !== 'object') return obj;
+                // MapLibre can be picky about deprecated/extra members
+                const copy = Array.isArray(obj) ? obj.slice() : { ...obj };
+                delete copy.crs;
+                delete copy.bbox;
+                return copy;
+            }
+
+            function normalizeToGeometry(input) {
+                let g = coerceGeoJsonValue(input);
+                if (!g || typeof g !== 'object') return null;
+
+                // If server accidentally returns a Feature
+                if (g.type === 'Feature' && g.geometry) {
+                    g = g.geometry;
+                }
+
+                // If server returns a FeatureCollection, we can't use it as a geometry
+                // (caller should handle FC differently)
+                if (g.type === 'FeatureCollection') {
+                    return null;
+                }
+
+                // Some APIs wrap geometry in a "geometry" field
+                if (!g.type && g.geometry && g.geometry.type) {
+                    g = g.geometry;
+                }
+
+                g = stripUnsupportedGeoJson(g);
+
+                if (!g.type) return null;
+
+                // Normalize coords to numbers where possible
+                if ('coordinates' in g) {
+                    g = { ...g, coordinates: normalizeCoords(g.coordinates) };
+                } else if (g.type === 'GeometryCollection' && Array.isArray(g.geometries)) {
+                    g = {
+                        ...g,
+                        geometries: g.geometries.map(geo => normalizeToGeometry(geo)).filter(Boolean)
+                    };
+                }
+
+                return g;
+            }
+
+            function isFiniteNumber(x) {
+                return typeof x === 'number' && Number.isFinite(x);
+            }
+
+            function validateGeometry(g) {
+                if (!g || typeof g !== 'object' || typeof g.type !== 'string') return false;
+
+                const t = g.type;
+                const c = g.coordinates;
+
+                if (t === 'Point') {
+                    return Array.isArray(c) && c.length >= 2 && isFiniteNumber(c[0]) && isFiniteNumber(c[1]);
+                }
+                if (t === 'MultiPoint' || t === 'LineString') {
+                    return Array.isArray(c) && c.every(p => Array.isArray(p) && p.length >= 2 && isFiniteNumber(p[0]) && isFiniteNumber(p[1]));
+                }
+                if (t === 'MultiLineString' || t === 'Polygon') {
+                    return Array.isArray(c) && c.every(ring =>
+                        Array.isArray(ring) && ring.every(p => Array.isArray(p) && p.length >= 2 && isFiniteNumber(p[0]) && isFiniteNumber(p[1]))
+                    );
+                }
+                if (t === 'MultiPolygon') {
+                    return Array.isArray(c) && c.every(poly =>
+                            Array.isArray(poly) && poly.every(ring =>
+                                Array.isArray(ring) && ring.every(p => Array.isArray(p) && p.length >= 2 && isFiniteNumber(p[0]) && isFiniteNumber(p[1]))
+                            )
+                    );
+                }
+                if (t === 'GeometryCollection') {
+                    return Array.isArray(g.geometries) && g.geometries.length > 0 && g.geometries.every(validateGeometry);
+                }
+                return false;
+            }
+
+            function updateCount(layer, n) {
+                const el = document.getElementById(layer + '-count');
+                if (el) el.textContent = n.toLocaleString();
+            }
+
+            function showLoading(show) {
+                document.getElementById('loading').classList.toggle('hidden', !show);
+            }
+
+            function emptyFC() {
+                return { type: 'FeatureCollection', features: [] };
+            }
+
+            function escHtml(str) {
+                const el = document.createElement('span');
+                el.textContent = str;
+                return el.innerHTML;
+            }
+
+            function debounce(fn, ms) {
+                let timer;
+                return function(...args) {
+                    clearTimeout(timer);
+                    timer = setTimeout(() => fn.apply(this, args), ms);
+                };
+            }
+
+        })();
+    </script>
+
+</th:block>
+
+</body>
+</html>

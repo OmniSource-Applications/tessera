@@ -31,7 +31,7 @@ INSERT INTO query_catalog (name, description, category, query_sql, param_schema,
           f.attributes, f.updated_at
     FROM tessera.geo_features f
     WHERE ST_Intersects(f.geometry, ST_MakeEnvelope(:minLon, :minLat, :maxLon, :maxLat, 4326))
-     AND (:sourceId IS NULL OR f.source_id = :sourceId::uuid)
+     AND f.source_id = COALESCE(:sourceId::uuid, f.source_id)
     ORDER BY f.updated_at DESC
     LIMIT :limit OFFSET :offset',
     '{"type":"object","properties":{"minLon":{"type":"number"},"minLat":{"type":"number"},
@@ -112,7 +112,7 @@ INSERT INTO query_catalog (name, description, category, query_sql, param_schema,
           f.attributes, f.updated_at
     FROM tessera.geo_features f
     WHERE f.updated_at > :since
-     AND (:sourceId IS NULL OR f.source_id = :sourceId::uuid)
+     AND f.source_id = COALESCE(:sourceId::uuid, f.source_id)
     ORDER BY f.updated_at ASC',
     '{"type":"object","properties":{"since":{"type":"string","format":"date-time"},
     "sourceId":{"type":"string","nullable":true}}}'::jsonb,

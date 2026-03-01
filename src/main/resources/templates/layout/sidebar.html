@@ -48,14 +48,14 @@
 
         <p class="px-3 mt-5 mb-2 text-[0.65rem] font-semibold uppercase tracking-widest text-muted">Data</p>
 
-        <a th:href="@{/layers}"
-           th:classappend="${'/layers'} ? 'bg-primary/10 text-primary' : 'text-muted hover:text-foreground hover:bg-background'"
+        <a th:href="@{/workspaces}"
+           th:classappend="${'/workspaces'} ? 'bg-primary/10 text-primary' : 'text-muted hover:text-foreground hover:bg-background'"
            class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors">
             <svg class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
                 <path stroke-linecap="round" stroke-linejoin="round"
-                      d="M12 2.25L2.25 9 12 15.75 21.75 9zM2.25 15l9.75 6.75L21.75 15M2.25 12l9.75 6.75L21.75 12"/>
+                      d="M3.75 3.75h6.5v7.5h-6.5zM13.75 3.75h6.5v4.5h-6.5zM13.75 11.25h6.5v9h-6.5zM3.75 14.25h6.5v6h-6.5z"/>
             </svg>
-            Layers
+            Workspaces
         </a>
 
         <a th:href="@{/layergroups}"
@@ -70,14 +70,23 @@
             Layers Groups
         </a>
 
-        <a th:href="@{/workspaces}"
-           th:classappend="${'/workspaces'} ? 'bg-primary/10 text-primary' : 'text-muted hover:text-foreground hover:bg-background'"
+        <a th:href="@{/layers}"
+           th:classappend="${'/layers'} ? 'bg-primary/10 text-primary' : 'text-muted hover:text-foreground hover:bg-background'"
            class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors">
             <svg class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
                 <path stroke-linecap="round" stroke-linejoin="round"
-                      d="M3.75 3.75h6.5v7.5h-6.5zM13.75 3.75h6.5v4.5h-6.5zM13.75 11.25h6.5v9h-6.5zM3.75 14.25h6.5v6h-6.5z"/>
+                      d="M12 2.25L2.25 9 12 15.75 21.75 9zM2.25 15l9.75 6.75L21.75 15M2.25 12l9.75 6.75L21.75 12"/>
             </svg>
-            Workspaces
+            Layers
+        </a>
+
+        <a th:href="@{/map}"
+           th:classappend="${'/map'} ? 'bg-primary/10 text-primary' : 'text-muted hover:text-foreground hover:bg-background'"
+           class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors">
+            <svg class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9 6.75V15m6-6v8.25m.503 3.498 4.875-2.437c.381-.19.622-.58.622-1.006V4.82c0-.836-.88-1.38-1.628-1.006l-3.869 1.934c-.317.159-.69.159-1.006 0L9.503 3.252a1.125 1.125 0 0 0-1.006 0L3.622 5.689C3.24 5.88 3 6.27 3 6.695V19.18c0 .836.88 1.38 1.628 1.006l3.869-1.934c.317-.159.69-.159 1.006 0l4.994 2.497c.317.158.69.158 1.006 0Z"/>
+            </svg>
+            Map Preview
         </a>
 
         <a th:href="@{/sources}"

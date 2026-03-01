@@ -40,7 +40,6 @@ spring:
     baseline-on-migrate: false
     schemas: tessera
 
-
   threads:
     virtual:
       enabled: true
@@ -91,4 +90,7 @@ server:
 logging:
   level:
     root: error
+    org.springframework.jdbc.core: DEBUG
+    org.springframework.jdbc.core.StatementCreatorUtils: TRACE
+    org.springframework.jdbc.support: TRACE
     live.omnisource.tessera: debug
