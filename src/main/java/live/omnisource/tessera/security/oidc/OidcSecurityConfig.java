@@ -40,7 +40,6 @@ public class OidcSecurityConfig {
                                 "/login"
                         ).permitAll()
                         .requestMatchers("/actuator/health").permitAll()
-                        // tighten actuator later with a dedicated ops permission mapping
                         .requestMatchers("/actuator/**").hasAuthority("TESSERA_OPS_VIEW")
                         .requestMatchers("/api/**").authenticated()
                         .anyRequest().authenticated()

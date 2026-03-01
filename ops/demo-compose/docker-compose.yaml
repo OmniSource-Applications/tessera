@@ -1,0 +1,105 @@
+services:
+  postgis:
+    image: postgis/postgis:17-3.4
+    container_name: demo_postgis
+    environment:
+      POSTGRES_DB: demo
+      POSTGRES_USER: demo
+      POSTGRES_PASSWORD: demo
+    ports:
+      - "5434:5432"   # host:container (avoid your existing 5432)
+    volumes:
+      - postgis_data:/var/lib/postgresql/data
+      - ./postgis/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U demo -d demo"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  cassandra:
+    image: cassandra:4.1
+    container_name: demo_cassandra
+    environment:
+      CASSANDRA_CLUSTER_NAME: demo
+      CASSANDRA_DC: dc1
+      CASSANDRA_RACK: rack1
+      MAX_HEAP_SIZE: 512M
+      HEAP_NEWSIZE: 128M
+    ports:
+      - "9042:9042"
+    volumes:
+      - cassandra_data:/var/lib/cassandra
+    healthcheck:
+      test: ["CMD-SHELL", "cqlsh -e 'DESCRIBE KEYSPACES' 127.0.0.1 9042 >/dev/null 2>&1 || exit 1"]
+      interval: 10s
+      timeout: 10s
+      retries: 30
+
+  cassandra_init:
+    image: cassandra:4.1
+    container_name: demo_cassandra_init
+    depends_on:
+      cassandra:
+        condition: service_healthy
+    volumes:
+      - ./cassandra/init:/init:ro
+    entrypoint: ["/bin/bash", "-lc", "cqlsh cassandra 9042 -f /init/01_schema.cql && cqlsh cassandra 9042 -f /init/02_seed.cql"]
+    restart: "no"
+
+  oracle:
+    image: gvenzl/oracle-free:23.3-slim
+    container_name: demo_oracle
+    environment:
+      ORACLE_PASSWORD: demo
+      APP_USER: demo
+      APP_USER_PASSWORD: demo
+    ports:
+      - "1521:1521"
+    volumes:
+      - oracle_data:/opt/oracle/oradata
+      - ./oracle/init:/container-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "healthcheck.sh >/dev/null || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.12.2
+    container_name: demo_elasticsearch
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - xpack.security.http.ssl.enabled=false
+      - ES_JAVA_OPTS=-Xms512m -Xmx512m
+    ports:
+      - "9200:9200"
+    volumes:
+      - es_data:/usr/share/elasticsearch/data
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://127.0.0.1:9200 >/dev/null || exit 1"]
+      interval: 5s
+      timeout: 3s
+      retries: 40
+
+  elasticsearch_init:
+    image: curlimages/curl:8.6.0
+    container_name: demo_elasticsearch_init
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+    volumes:
+      - ./elasticsearch/init:/init:ro
+    entrypoint: ["/bin/sh", "-lc", "sh /init/seed.sh"]
+    restart: "no"
+
+volumes:
+  postgis_data:
+  cassandra_data:
+  oracle_data:
+  es_data:
+
+networks:
+  tessera-net:
+    name: tessera-net

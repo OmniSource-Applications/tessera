@@ -53,12 +53,12 @@ public class HomeController {
         return LAYOUT;
     }
 
-    @GetMapping("/query")
-    public String query(Model model) {
-        model.addAttribute(TITLE, "Query");
-        model.addAttribute(VIEW, "query");
-        return LAYOUT;
-    }
+//    @GetMapping("/query")
+//    public String query(Model model) {
+//        model.addAttribute(TITLE, "Query");
+//        model.addAttribute(VIEW, "query");
+//        return LAYOUT;
+//    }
 
 //    @GetMapping("/streams")
 //    public String streams(Model model) {
