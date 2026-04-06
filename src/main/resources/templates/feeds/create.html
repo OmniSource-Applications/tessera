@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<th:block th:fragment="content">
+
+    <nav class="mb-6 text-sm text-muted">
+        <a th:href="@{/workspaces}" class="hover:text-foreground transition-colors">Workspaces</a>
+        <span class="mx-1.5">/</span>
+        <a th:href="@{/workspaces/{ws}(ws=${workspace})}" class="hover:text-foreground transition-colors"
+           th:text="${workspace}">ws</a>
+        <span class="mx-1.5">/</span>
+        <a th:href="@{/workspaces/{ws}/feeds(ws=${workspace})}" class="hover:text-foreground transition-colors">Feeds</a>
+        <span class="mx-1.5">/</span>
+        <span class="text-foreground font-medium">New</span>
+    </nav>
+
+    <div class="grid grid-cols-1 xl:grid-cols-12 gap-6">
+
+        <div class="xl:col-span-8 space-y-6">
+
+            <!-- Name + Type -->
+            <div class="bg-surface border border-border rounded-xl p-5">
+                <h3 class="text-sm font-semibold text-foreground mb-4">Feed Identity</h3>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-medium text-muted mb-1">Feed Name</label>
+                        <input id="f-name" type="text" placeholder="ais-stream"
+                               class="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm text-foreground
+                                      font-mono placeholder:text-placeholder focus:outline-none focus:ring-2
+                                      focus:ring-ring/40 focus:border-primary hover:border-input-hover transition-colors"/>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-muted mb-1">Protocol</label>
+                        <select id="f-type"
+                                class="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm text-foreground
+                                       focus:outline-none focus:ring-2 focus:ring-ring/40 focus:border-primary
+                                       hover:border-input-hover transition-colors">
+                            <option value="REST_POLL">REST Poll</option>
+                            <option value="TCP">TCP</option>
+                            <option value="WEBSOCKET">WebSocket</option>
+                            <option value="KAFKA">Kafka</option>
+                            <option value="AMQP">AMQP</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="mt-3 flex items-center gap-2">
+                    <input id="f-enabled" type="checkbox" checked class="h-4 w-4 rounded border-input text-primary focus:ring-ring/40"/>
+                    <label for="f-enabled" class="text-sm text-foreground">Enable on save (auto-start)</label>
+                </div>
+            </div>
+
+            <!-- Connection — REST_POLL -->
+            <div id="sec-rest" class="bg-surface border border-border rounded-xl p-5">
+                <h3 class="text-sm font-semibold text-foreground mb-4">REST Connection</h3>
+                <div class="space-y-3">
+                    <div>
+                        <label class="block text-xs font-medium text-muted mb-1">URL</label>
+                        <input id="f-rest-url" type="text" placeholder="https://api.example.com/v1/features"
+                               class="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm text-foreground
+                                      font-mono placeholder:text-placeholder focus:outline-none focus:ring-2
+                                      focus:ring-ring/40 focus:border-primary hover:border-input-hover transition-colors"/>
+                    </div>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-xs font-medium text-muted mb-1">Method</label>
+                            <select id="f-rest-method" class="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring/40">
+                                <option value="GET">GET</option>
+                                <option value="POST">POST</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-muted mb-1">Poll Interval (ms)</label>
+                            <input id="f-rest-interval" type="number" value="5000" min="500"
+                                   class="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm text-foreground font-mono focus:outline-none focus:ring-2 focus:ring-ring/40"/>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Connection — TCP -->
+            <div id="sec-tcp" class="hidden bg-surface border border-border rounded-xl p-5">
+                <h3 class="text-sm font-semibold text-foreground mb-4">TCP Connection</h3>
+                <div class="grid grid-cols-3 gap-3">
+                    <div class="col-span-2">
+                        <label class="block text-xs font-medium text-muted mb-1">Host</label>
+                        <input id="f-tcp-host" type="text" placeholder="stream.example.com"
+                               class="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm text-foreground font-mono placeholder:text-placeholder focus:outline-none focus:ring-2 focus:ring-ring/40"/>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-muted mb-1">Port</label>
+                        <input id="f-tcp-port" type="number" value="5631"
+                               class="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm text-foreground font-mono focus:outline-none focus:ring-2 focus:ring-ring/40"/>
+                    </div>
+                </div>
+                <div class="mt-3 flex items-center gap-2">
+                    <input id="f-tcp-tls" type="checkbox" class="h-4 w-4 rounded border-input text-primary focus:ring-ring/40"/>
+                    <label for="f-tcp-tls" class="text-sm text-foreground">TLS</label>
+                </div>
+            </div>
+
+            <!-- Connection — WEBSOCKET -->
+            <div id="sec-websocket" class="hidden bg-surface border border-border rounded-xl p-5">
+                <h3 class="text-sm font-semibold text-foreground mb-4">WebSocket Connection</h3>
+                <div>
+                    <label class="block text-xs font-medium text-muted mb-1">WebSocket URL</label>
+                    <input id="f-ws-url" type="text" placeholder="wss://stream.example.com/ws"
+                           class="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm text-foreground font-mono placeholder:text-placeholder focus:outline-none focus:ring-2 focus:ring-ring/40"/>
+                </div>
+                <div class="mt-3">
+                    <label class="block text-xs font-medium text-muted mb-1">Subscribe Message (optional)</label>
+                    <textarea id="f-ws-subscribe" rows="4" placeholder='{"APIKey":"YOUR_KEY","BoundingBoxes":[[[-90,-180],[90,180]]],"FilterMessageTypes":["PositionReport"]}'
+                              class="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm text-foreground font-mono placeholder:text-placeholder focus:outline-none focus:ring-2 focus:ring-ring/40"></textarea>
+                </div>
+            </div>
+
+            <!-- Connection — KAFKA -->
+            <div id="sec-kafka" class="hidden bg-surface border border-border rounded-xl p-5">
+                <h3 class="text-sm font-semibold text-foreground mb-4">Kafka Connection</h3>
+                <div class="space-y-3">
+                    <div>
+                        <label class="block text-xs font-medium text-muted mb-1">Bootstrap Servers</label>
+                        <input id="f-kafka-servers" type="text" placeholder="kafka-1:9092,kafka-2:9092"
+                               class="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm text-foreground font-mono placeholder:text-placeholder focus:outline-none focus:ring-2 focus:ring-ring/40"/>
+                    </div>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-xs font-medium text-muted mb-1">Topic</label>
+                            <input id="f-kafka-topic" type="text" placeholder="geo-events"
+                                   class="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm text-foreground font-mono placeholder:text-placeholder focus:outline-none focus:ring-2 focus:ring-ring/40"/>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-muted mb-1">Consumer Group</label>
+                            <input id="f-kafka-group" type="text" placeholder="tessera-ingest"
+                                   class="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm text-foreground font-mono placeholder:text-placeholder focus:outline-none focus:ring-2 focus:ring-ring/40"/>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Connection — AMQP -->
+            <div id="sec-amqp" class="hidden bg-surface border border-border rounded-xl p-5">
+                <h3 class="text-sm font-semibold text-foreground mb-4">AMQP Connection</h3>
+                <div class="space-y-3">
+                    <div>
+                        <label class="block text-xs font-medium text-muted mb-1">AMQP URI</label>
+                        <input id="f-amqp-uri" type="text" placeholder="amqp://user:pass@rabbitmq:5672/vhost"
+                               class="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm text-foreground font-mono placeholder:text-placeholder focus:outline-none focus:ring-2 focus:ring-ring/40"/>
+                    </div>
+                    <div class="grid grid-cols-3 gap-3">
+                        <div>
+                            <label class="block text-xs font-medium text-muted mb-1">Exchange</label>
+                            <input id="f-amqp-exchange" type="text" placeholder="geo.events"
+                                   class="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm text-foreground font-mono placeholder:text-placeholder focus:outline-none focus:ring-2 focus:ring-ring/40"/>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-muted mb-1">Queue</label>
+                            <input id="f-amqp-queue" type="text" placeholder="tessera.ingest"
+                                   class="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm text-foreground font-mono placeholder:text-placeholder focus:outline-none focus:ring-2 focus:ring-ring/40"/>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-muted mb-1">Routing Key</label>
+                            <input id="f-amqp-rk" type="text" placeholder="#"
+                                   class="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm text-foreground font-mono placeholder:text-placeholder focus:outline-none focus:ring-2 focus:ring-ring/40"/>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Schema Mapping -->
+            <div class="bg-surface border border-border rounded-xl p-5">
+                <h3 class="text-sm font-semibold text-foreground mb-4">Schema Mapping</h3>
+                <div class="space-y-3">
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-xs font-medium text-muted mb-1">Data Format</label>
+                            <select id="f-format" class="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring/40">
+                                <option value="JSON">JSON</option>
+                                <option value="JSON_LINES">JSON Lines</option>
+                                <option value="JSON_ARRAY">JSON Array</option>
+                                <option value="GEOJSON">GeoJSON</option>
+                                <option value="CSV">CSV</option>
+                                <option value="PROTOBUF">Protobuf</option>
+                                <option value="AVRO">Avro</option>
+                                <option value="RAW_TEXT">Raw Text</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-muted mb-1">Root Path (optional)</label>
+                            <input id="f-root-path" type="text" placeholder="data.features"
+                                   class="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm text-foreground font-mono placeholder:text-placeholder focus:outline-none focus:ring-2 focus:ring-ring/40"/>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-3 gap-3">
+                        <div>
+                            <label class="block text-xs font-medium text-muted mb-1">Geometry Type</label>
+                            <select id="f-geom-type" class="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring/40">
+                                <option value="LAT_LNG">Lat/Lng Fields</option>
+                                <option value="WKT">WKT</option>
+                                <option value="WKB">WKB</option>
+                                <option value="GEOJSON">GeoJSON Geometry</option>
+                                <option value="H3">H3 Cell Index</option>
+                                <option value="MGRS">MGRS</option>
+                                <option value="NONE">None (no geometry)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-muted mb-1">Lat Field</label>
+                            <input id="f-lat" type="text" placeholder="latitude"
+                                   class="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm text-foreground font-mono placeholder:text-placeholder focus:outline-none focus:ring-2 focus:ring-ring/40"/>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-muted mb-1">Lng Field</label>
+                            <input id="f-lng" type="text" placeholder="longitude"
+                                   class="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm text-foreground font-mono placeholder:text-placeholder focus:outline-none focus:ring-2 focus:ring-ring/40"/>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-xs font-medium text-muted mb-1">ID Field (optional)</label>
+                            <input id="f-id-field" type="text" placeholder="id or mmsi"
+                                   class="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm text-foreground font-mono placeholder:text-placeholder focus:outline-none focus:ring-2 focus:ring-ring/40"/>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-muted mb-1">Timestamp Field (optional)</label>
+                            <input id="f-ts-field" type="text" placeholder="timestamp"
+                                   class="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm text-foreground font-mono placeholder:text-placeholder focus:outline-none focus:ring-2 focus:ring-ring/40"/>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Ingest Config -->
+            <div class="bg-surface border border-border rounded-xl p-5">
+                <h3 class="text-sm font-semibold text-foreground mb-4">Ingest Settings</h3>
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                    <div>
+                        <label class="block text-xs font-medium text-muted mb-1">Source Table</label>
+                        <input id="f-source-table" type="text" placeholder="feed.ais-stream"
+                               class="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm text-foreground font-mono placeholder:text-placeholder focus:outline-none focus:ring-2 focus:ring-ring/40"/>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-muted mb-1">Batch Size</label>
+                        <input id="f-batch" type="number" value="100"
+                               class="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm text-foreground font-mono focus:outline-none focus:ring-2 focus:ring-ring/40"/>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-muted mb-1">Flush (ms)</label>
+                        <input id="f-flush" type="number" value="2000"
+                               class="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm text-foreground font-mono focus:outline-none focus:ring-2 focus:ring-ring/40"/>
+                    </div>
+                    <div class="flex items-end">
+                        <label class="flex items-center gap-2 text-sm text-foreground">
+                            <input id="f-h3" type="checkbox" checked class="h-4 w-4 rounded border-input text-primary focus:ring-ring/40"/>
+                            H3 Index
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right: Preview + Save -->
+        <div class="xl:col-span-4 space-y-6">
+            <div class="bg-surface border border-border rounded-xl overflow-hidden sticky top-20">
+                <div class="px-5 py-3 border-b border-border">
+                    <h3 class="text-sm font-semibold text-foreground">Config Preview</h3>
+                </div>
+                <pre id="f-preview" class="p-4 text-xs font-mono text-foreground bg-background/50 overflow-x-auto max-h-80 whitespace-pre-wrap leading-relaxed">{}</pre>
+                <div class="border-t border-border px-5 py-3 flex gap-2">
+                    <button type="button" id="f-save-btn"
+                            class="flex-1 rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground
+                                   hover:bg-primary-hover transition-all">
+                        Create Feed
+                    </button>
+                    <button type="button" id="f-test-btn"
+                            class="rounded-lg border border-border bg-background px-4 py-2.5 text-sm font-medium
+                                   text-foreground hover:bg-background/60 transition-all">
+                        Test
+                    </button>
+                </div>
+                <div id="f-status" class="hidden px-5 py-2 text-xs border-t border-border"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pass server-side values to JS via data attributes -->
+    <div id="feed-config"
+         class="hidden"
+         th:data-ctx="${@environment.getProperty('server.servlet.context-path', '')}"
+         th:data-workspace="${workspace}">
+    </div>
+
+    <script>
+        (function () {
+            /* ── Server-side values ──────────────────────── */
+            var configEl  = document.getElementById('feed-config');
+            var ctx       = configEl.dataset.ctx || '';
+            var workspace = configEl.dataset.workspace || '';
+            var apiBase   = ctx + '/api/workspaces/' + workspace + '/feeds';
+            var webBase   = ctx + '/workspaces/' + workspace + '/feeds';
+
+            /* ── Element refs ────────────────────────────── */
+            var typeSelect = document.getElementById('f-type');
+            var secRest    = document.getElementById('sec-rest');
+            var secTcp     = document.getElementById('sec-tcp');
+            var secWs      = document.getElementById('sec-websocket');
+            var secKafka   = document.getElementById('sec-kafka');
+            var secAmqp    = document.getElementById('sec-amqp');
+            var preview    = document.getElementById('f-preview');
+            var statusEl   = document.getElementById('f-status');
+
+            var allSections = [secRest, secTcp, secWs, secKafka, secAmqp];
+            var typeMap = {
+                'REST_POLL': secRest,
+                'TCP':       secTcp,
+                'WEBSOCKET': secWs,
+                'KAFKA':     secKafka,
+                'AMQP':      secAmqp
+            };
+
+            /* ── Section toggle ──────────────────────────── */
+            function toggleSections() {
+                var selected = typeSelect.value;
+                var active   = typeMap[selected] || null;
+
+                for (var i = 0; i < allSections.length; i++) {
+                    var sec = allSections[i];
+                    if (!sec) continue;
+                    var hide = (sec !== active);
+                    sec.classList.toggle('hidden', hide);
+                }
+            }
+
+            typeSelect.addEventListener('change', function () {
+                toggleSections();
+                buildPreview();
+            });
+
+            /* ── Helpers ─────────────────────────────────── */
+            function val(id) {
+                var el = document.getElementById(id);
+                return (el && el.value) ? el.value.trim() : '';
+            }
+            function isChecked(id) {
+                var el = document.getElementById(id);
+                return el ? el.checked : false;
+            }
+            function intVal(id, fallback) {
+                var v = parseInt(val(id), 10);
+                return isNaN(v) ? fallback : v;
+            }
+
+            /* ── Build preview JSON ──────────────────────── */
+            function buildPreview() {
+                var type = val('f-type');
+                var conn = {};
+
+                if (type === 'REST_POLL') {
+                    conn = { url: val('f-rest-url'), method: val('f-rest-method'), pollIntervalMs: intVal('f-rest-interval', 5000) };
+                } else if (type === 'TCP') {
+                    conn = { host: val('f-tcp-host'), port: intVal('f-tcp-port', 5631), tls: isChecked('f-tcp-tls') };
+                } else if (type === 'WEBSOCKET') {
+                    conn = { wsUrl: val('f-ws-url'), wsSubscribeMessage: val('f-ws-subscribe') || null };
+                } else if (type === 'KAFKA') {
+                    conn = { bootstrapServers: val('f-kafka-servers'), topic: val('f-kafka-topic'), groupId: val('f-kafka-group') || null };
+                } else if (type === 'AMQP') {
+                    conn = { amqpUri: val('f-amqp-uri'), exchange: val('f-amqp-exchange') || null, queue: val('f-amqp-queue'), routingKey: val('f-amqp-rk') || null };
+                }
+
+                var config = {
+                    name: val('f-name'),
+                    type: type,
+                    enabled: isChecked('f-enabled'),
+                    connection: conn,
+                    schema: {
+                        format: val('f-format'),
+                        geometry: {
+                            type: val('f-geom-type'),
+                            latField: val('f-lat') || null,
+                            lngField: val('f-lng') || null,
+                            srid: 4326
+                        },
+                        idField: val('f-id-field') || null,
+                        timestampField: val('f-ts-field') || null,
+                        rootPath: val('f-root-path') || null
+                    },
+                    ingest: {
+                        sourceTable: val('f-source-table') || ('feed.' + val('f-name')),
+                        batchSize: intVal('f-batch', 100),
+                        flushIntervalMs: intVal('f-flush', 2000),
+                        h3Index: isChecked('f-h3'),
+                        h3Resolutions: [7, 9]
+                    }
+                };
+
+                if (preview) {
+                    preview.textContent = JSON.stringify(config, null, 2);
+                }
+                return config;
+            }
+
+            /* ── Wire all inputs to rebuild preview ──────── */
+            var inputs = document.querySelectorAll('#f-name, #f-type, #f-enabled, ' +
+                '#f-rest-url, #f-rest-method, #f-rest-interval, ' +
+                '#f-tcp-host, #f-tcp-port, #f-tcp-tls, ' +
+                '#f-ws-url, #f-ws-subscribe, ' +
+                '#f-kafka-servers, #f-kafka-topic, #f-kafka-group, ' +
+                '#f-amqp-uri, #f-amqp-exchange, #f-amqp-queue, #f-amqp-rk, ' +
+                '#f-format, #f-root-path, #f-geom-type, #f-lat, #f-lng, ' +
+                '#f-id-field, #f-ts-field, #f-source-table, #f-batch, #f-flush, #f-h3');
+            for (var i = 0; i < inputs.length; i++) {
+                inputs[i].addEventListener('input', buildPreview);
+                inputs[i].addEventListener('change', buildPreview);
+            }
+
+            /* ── Save ────────────────────────────────────── */
+            document.getElementById('f-save-btn').addEventListener('click', function () {
+                var config = buildPreview();
+
+                fetch(apiBase, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(config)
+                })
+                    .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, data: d }; }); })
+                    .then(function (res) {
+                        statusEl.classList.remove('hidden');
+                        if (res.ok) {
+                            statusEl.className = 'px-5 py-2 text-xs border-t border-border text-success';
+                            statusEl.textContent = 'Feed created. Redirecting…';
+                            setTimeout(function () { window.location = webBase + '/' + config.name; }, 1000);
+                        } else {
+                            statusEl.className = 'px-5 py-2 text-xs border-t border-border text-danger';
+                            statusEl.textContent = res.data.error || 'Failed to create feed';
+                        }
+                    })
+                    .catch(function (e) {
+                        statusEl.classList.remove('hidden');
+                        statusEl.className = 'px-5 py-2 text-xs border-t border-border text-danger';
+                        statusEl.textContent = 'Error: ' + e.message;
+                    });
+            });
+
+            /* ── Test ────────────────────────────────────── */
+            document.getElementById('f-test-btn').addEventListener('click', function () {
+                statusEl.classList.remove('hidden');
+                statusEl.className = 'px-5 py-2 text-xs border-t border-border text-muted';
+                statusEl.textContent = 'Testing…';
+
+                var config = buildPreview();
+                fetch(apiBase, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(config) })
+                    .then(function () { return fetch(apiBase + '/' + config.name + '/test', { method: 'POST' }); })
+                    .then(function (r) { return r.json(); })
+                    .then(function (data) {
+                        statusEl.className = 'px-5 py-2 text-xs border-t border-border ' + (data.success ? 'text-success' : 'text-danger');
+                        statusEl.textContent = data.success ? data.message : (data.error || 'Connection failed');
+                    })
+                    .catch(function (e) {
+                        statusEl.className = 'px-5 py-2 text-xs border-t border-border text-danger';
+                        statusEl.textContent = 'Error: ' + e.message;
+                    });
+            });
+
+            /* ── Init ────────────────────────────────────── */
+            toggleSections();
+            buildPreview();
+
+        })();
+    </script>
+
+</th:block>
+
+</body>
+</html>

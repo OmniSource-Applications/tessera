@@ -22,8 +22,8 @@
         </div>
     </div>
 
-    <div th:if="${error != null}" class="mb-4 rounded-lg border border-danger/30 bg-danger/10 p-4 text-sm text-danger" th:text="${error}"></div>
-    <div th:if="${success != null}" class="mb-4 rounded-lg border border-primary/30 bg-primary/10 p-4 text-sm text-primary" th:text="${success}"></div>
+    <div th:if="${error != null}" class="mb-4 rounded-lg border border-danger/20 bg-danger/10 p-4 text-sm text-danger" th:text="${error}"></div>
+    <div th:if="${success != null}" class="mb-4 rounded-lg border border-success/20 bg-success/10 p-4 text-sm text-success" th:text="${success}"></div>
 
     <section class="bg-surface border border-border rounded-xl overflow-hidden">
         <div class="p-4 border-b border-border flex items-center justify-between gap-4">
@@ -34,9 +34,11 @@
             <form th:action="@{/settings/oidc/rbac/new}" method="post" class="flex items-center gap-2"
                   sec:authorize="hasAuthority('TESSERA_RBAC_EDIT')">
                 <input name="name" placeholder="new-policy.json"
-                       class="h-9 w-56 rounded-lg bg-background border border-border px-3 text-sm text-foreground placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-primary/40"/>
+                       class="h-9 w-56 rounded-lg bg-background border border-input px-3 text-sm text-foreground
+                              placeholder:text-placeholder focus:outline-none focus:ring-2 focus:ring-ring/40
+                              hover:border-input-hover transition-colors"/>
                 <button type="submit"
-                        class="h-9 rounded-lg bg-primary text-primary-foreground px-3 text-sm font-semibold hover:opacity-90">
+                        class="h-9 rounded-lg bg-primary text-primary-foreground px-3 text-sm font-semibold hover:bg-primary-hover transition-colors">
                     New
                 </button>
             </form>

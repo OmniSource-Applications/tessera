@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<th:block th:fragment="content">
+
+    <!-- Breadcrumb -->
+    <nav class="mb-6 text-sm text-muted">
+        <a th:href="@{/security}" class="hover:text-foreground transition-colors">Security</a>
+        <span class="mx-1.5">/</span>
+        <a th:href="@{/settings/rbac}" class="hover:text-foreground transition-colors">RBAC Policies</a>
+        <span class="mx-1.5">/</span>
+        <span class="text-foreground font-medium font-mono" th:text="${file}">policy.json</span>
+    </nav>
+
+    <!-- Flash -->
+    <div th:if="${success}" class="mb-6 rounded-lg bg-success/10 border border-success/20 px-4 py-3 text-sm text-success" th:text="${success}"></div>
+    <div th:if="${error}" class="mb-6 rounded-lg bg-danger/10 border border-danger/20 px-4 py-3 text-sm text-danger" th:text="${error}"></div>
+    <div th:if="${isNew}" class="mb-6 rounded-lg bg-primary/10 border border-primary/20 px-4 py-3 text-sm text-primary">
+        New policy file. Add subjects and save to create it.
+    </div>
+
+    <div class="grid grid-cols-1 xl:grid-cols-12 gap-6">
+
+        <!-- ═══════════════════════════════════════════
+             LEFT: Visual Editor
+             ═══════════════════════════════════════════ -->
+        <div class="xl:col-span-8 space-y-6">
+
+            <!-- Global Override Explanation -->
+            <div class="bg-accent/5 border border-accent/20 rounded-xl p-4">
+                <div class="flex items-start gap-3">
+                    <svg class="h-5 w-5 text-accent shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z"/>
+                    </svg>
+                    <div class="text-xs text-muted">
+                        <strong class="text-foreground">Global roles override workspace roles.</strong>
+                        When a user has a global role, its permissions apply in every workspace automatically.
+                        A <code class="bg-background px-1 rounded font-mono">TESSERA_PLATFORM_ADMIN</code> globally
+                        has full access everywhere — no workspace bindings needed.
+                        Workspace roles only add permissions for specific workspaces.
+                    </div>
+                </div>
+            </div>
+
+            <!-- Subjects Container -->
+            <div id="subjects-container" class="space-y-4"></div>
+
+            <!-- Add Subject Button -->
+            <button type="button" id="add-subject-btn"
+                    class="w-full rounded-xl border-2 border-dashed border-border py-4 text-sm font-medium
+                           text-muted hover:border-primary/40 hover:text-primary transition-colors">
+                + Add Subject
+            </button>
+
+        </div>
+
+        <!-- ═══════════════════════════════════════════
+             RIGHT: JSON Preview + Save + Reference
+             ═══════════════════════════════════════════ -->
+        <div class="xl:col-span-4 space-y-6">
+
+            <!-- Save Form -->
+            <form th:action="@{/settings/rbac/{f}(f=${file})}" method="post" id="save-form">
+                <input type="hidden" name="json" id="save-json"/>
+
+                <div class="bg-surface border border-border rounded-xl overflow-hidden">
+                    <div class="px-5 py-3 border-b border-border flex items-center justify-between">
+                        <h3 class="text-sm font-semibold text-foreground">Policy JSON</h3>
+                        <div class="flex items-center gap-2">
+                            <button type="button" onclick="toggleJsonEdit()"
+                                    class="text-xs font-medium text-muted hover:text-foreground transition-colors"
+                                    id="json-edit-toggle">Edit Raw</button>
+                            <button type="submit"
+                                    class="rounded-lg bg-primary px-4 py-2 text-xs font-medium text-primary-foreground
+                                           hover:bg-primary-hover transition-colors">
+                                Save
+                            </button>
+                        </div>
+                    </div>
+                    <!-- Read-only preview -->
+                    <pre id="json-preview"
+                         class="p-4 text-xs font-mono text-foreground bg-background/50 overflow-x-auto
+                                max-h-80 whitespace-pre-wrap leading-relaxed"></pre>
+                    <!-- Editable textarea (hidden by default) -->
+                    <textarea id="json-editor"
+                              class="hidden w-full p-4 text-xs font-mono text-foreground bg-background/50
+                                     border-none outline-none resize-y min-h-[200px] max-h-80"
+                              spellcheck="false"></textarea>
+                </div>
+            </form>
+
+            <!-- Role Reference -->
+            <div class="bg-surface border border-border rounded-xl overflow-hidden">
+                <div class="px-5 py-3 border-b border-border">
+                    <h3 class="text-sm font-semibold text-foreground">Role → Permissions</h3>
+                </div>
+                <div class="p-4 space-y-3 max-h-96 overflow-y-auto">
+                    <div th:each="entry : ${rolePermissions}" class="text-xs">
+                        <div class="font-semibold text-foreground font-mono mb-1" th:text="${entry.key}">ROLE</div>
+                        <div class="flex flex-wrap gap-1">
+                            <span th:each="perm : ${entry.value}"
+                                  class="inline-flex rounded px-1.5 py-0.5 bg-background text-muted font-mono text-[0.6rem]"
+                                  th:text="${perm}">PERM</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Subject Format Reference -->
+            <div class="bg-surface border border-border rounded-xl p-5">
+                <h3 class="text-sm font-semibold text-foreground mb-3">Subject Formats</h3>
+                <div class="space-y-2 text-xs text-muted">
+                    <div>
+                        <code class="font-mono text-foreground">oidc:sub:&lt;uuid&gt;</code>
+                        <span class="ml-2">— OIDC subject claim (most stable)</span>
+                    </div>
+                    <div>
+                        <code class="font-mono text-foreground">oidc:email:&lt;email&gt;</code>
+                        <span class="ml-2">— OIDC email claim</span>
+                    </div>
+                    <div>
+                        <code class="font-mono text-foreground">oidc:username:&lt;name&gt;</code>
+                        <span class="ml-2">— OIDC preferred_username</span>
+                    </div>
+                    <div>
+                        <code class="font-mono text-foreground">name:&lt;username&gt;</code>
+                        <span class="ml-2">— Basic auth fallback (dev profile)</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════
+         JavaScript — Visual Editor Engine
+         ═══════════════════════════════════════════════ -->
+    <script th:inline="javascript">
+        (function () {
+            'use strict';
+
+            /* ── Data from server ────────────────────── */
+            var globalRoleNames    = /*[[${globalRoles}]]*/ [];
+            var workspaceRoleNames = /*[[${workspaceRoles}]]*/ [];
+            var allRoleNames       = /*[[${allRoles}]]*/ [];
+            var workspaces         = /*[[${workspaces}]]*/ [];
+            var initialJson        = /*[[${json}]]*/ '{"schemaVersion":1,"subjects":[]}';
+
+            /* ── State ───────────────────────────────── */
+            var policy = { schemaVersion: 1, subjects: [] };
+            try { policy = JSON.parse(initialJson); } catch (e) {}
+            if (!policy.subjects) policy.subjects = [];
+
+            var subjectIdSeq = 0;
+            var jsonEditMode = false;
+
+            /* ── Element refs ────────────────────────── */
+            var container  = document.getElementById('subjects-container');
+            var addBtn     = document.getElementById('add-subject-btn');
+            var preview    = document.getElementById('json-preview');
+            var editor     = document.getElementById('json-editor');
+            var saveJson   = document.getElementById('save-json');
+            var editToggle = document.getElementById('json-edit-toggle');
+
+            /* ── Init: render existing subjects ──────── */
+            policy.subjects.forEach(function (s) { renderSubject(s); });
+            syncJson();
+
+            /* ── Add subject ─────────────────────────── */
+            addBtn.addEventListener('click', function () {
+                var sub = { subject: '', globalRoles: [], workspaceRoles: {} };
+                policy.subjects.push(sub);
+                renderSubject(sub);
+                syncJson();
+            });
+
+            /* ── Render a single subject card ────────── */
+            function renderSubject(subjectData) {
+                var id = ++subjectIdSeq;
+                var card = document.createElement('div');
+                card.className = 'bg-surface border border-border rounded-xl overflow-hidden';
+                card.dataset.subjectId = id;
+                subjectData._id = id;
+
+                var html = '';
+
+                // ── Header: subject identifier + remove
+                html += '<div class="px-5 py-3 border-b border-border flex items-center gap-3">';
+                html += '  <svg class="h-4 w-4 text-muted shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0"/></svg>';
+                html += '  <input type="text" data-field="subject" value="' + esc(subjectData.subject || '') + '"';
+                html += '         placeholder="oidc:email:user@example.com"';
+                html += '         class="flex-1 rounded-lg border border-input bg-background px-3 py-2 text-sm text-foreground';
+                html += '                font-mono placeholder:text-placeholder focus:outline-none focus:ring-2';
+                html += '                focus:ring-ring/40 focus:border-primary hover:border-input-hover transition-colors"/>';
+                html += '  <button type="button" data-action="remove-subject"';
+                html += '          class="p-1.5 rounded-lg text-muted hover:text-danger hover:bg-danger/10 transition-colors">';
+                html += '    <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">';
+                html += '      <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg></button>';
+                html += '</div>';
+
+                // ── Global Roles Section
+                html += '<div class="px-5 py-4 border-b border-border">';
+                html += '  <div class="flex items-center gap-2 mb-3">';
+                html += '    <span class="inline-flex items-center rounded-full px-2 py-0.5 text-[0.6rem] font-bold bg-accent/10 text-accent uppercase tracking-wide">Global</span>';
+                html += '    <span class="text-xs text-muted">Applies to all workspaces</span>';
+                html += '  </div>';
+                html += '  <div class="flex flex-wrap gap-2">';
+                globalRoleNames.forEach(function (role) {
+                    var checked = (subjectData.globalRoles || []).indexOf(role) >= 0;
+                    html += roleCheckbox(role, 'global', checked, role === 'TESSERA_PLATFORM_ADMIN');
+                });
+                html += '  </div>';
+                html += '</div>';
+
+                // ── Workspace Roles Section
+                html += '<div class="px-5 py-4">';
+                html += '  <div class="flex items-center justify-between mb-3">';
+                html += '    <div class="flex items-center gap-2">';
+                html += '      <span class="inline-flex items-center rounded-full px-2 py-0.5 text-[0.6rem] font-bold bg-primary/10 text-primary uppercase tracking-wide">Workspace</span>';
+                html += '      <span class="text-xs text-muted">Scoped to specific workspaces</span>';
+                html += '    </div>';
+                html += '    <button type="button" data-action="add-ws-binding"';
+                html += '            class="text-xs font-medium text-primary hover:text-primary-hover transition-colors">+ Add Workspace</button>';
+                html += '  </div>';
+                html += '  <div data-ws-container class="space-y-3">';
+
+                // Render existing workspace bindings
+                var wsRoles = subjectData.workspaceRoles || {};
+                Object.keys(wsRoles).forEach(function (wsName) {
+                    html += workspaceBindingHtml(wsName, wsRoles[wsName] || []);
+                });
+
+                html += '  </div>';
+                html += '</div>';
+
+                card.innerHTML = html;
+                container.appendChild(card);
+
+                // ── Wire events on this card
+                card.querySelector('[data-field="subject"]').addEventListener('input', function () {
+                    subjectData.subject = this.value;
+                    syncJson();
+                });
+
+                card.querySelector('[data-action="remove-subject"]').addEventListener('click', function () {
+                    policy.subjects = policy.subjects.filter(function (s) { return s._id !== id; });
+                    card.remove();
+                    syncJson();
+                });
+
+                card.querySelectorAll('[data-role-scope="global"]').forEach(function (cb) {
+                    cb.addEventListener('change', function () {
+                        subjectData.globalRoles = collectChecked(card, 'global');
+                        syncJson();
+                    });
+                });
+
+                card.querySelector('[data-action="add-ws-binding"]').addEventListener('click', function () {
+                    var wsContainer = card.querySelector('[data-ws-container]');
+                    var div = document.createElement('div');
+                    div.innerHTML = workspaceBindingHtml('', []);
+                    var binding = div.firstElementChild;
+                    wsContainer.appendChild(binding);
+                    wireWsBinding(binding, subjectData);
+                });
+
+                // Wire existing workspace bindings
+                card.querySelectorAll('[data-ws-binding]').forEach(function (binding) {
+                    wireWsBinding(binding, subjectData);
+                });
+            }
+
+            /* ── Workspace binding HTML ──────────────── */
+            function workspaceBindingHtml(wsName, roles) {
+                var html = '<div data-ws-binding class="rounded-lg border border-border/50 bg-background/30 p-3">';
+
+                // Workspace selector row
+                html += '<div class="flex items-center gap-2 mb-2">';
+                html += '  <select data-ws-name class="flex-1 rounded-lg border border-input bg-background px-3 py-1.5 text-sm text-foreground';
+                html += '         focus:outline-none focus:ring-2 focus:ring-ring/40 focus:border-primary hover:border-input-hover transition-colors">';
+                html += '    <option value="">Select workspace…</option>';
+                workspaces.forEach(function (ws) {
+                    html += '<option value="' + esc(ws) + '"' + (ws === wsName ? ' selected' : '') + '>' + esc(ws) + '</option>';
+                });
+                // Allow typing a custom workspace name
+                if (wsName && workspaces.indexOf(wsName) < 0) {
+                    html += '<option value="' + esc(wsName) + '" selected>' + esc(wsName) + '</option>';
+                }
+                html += '  </select>';
+                html += '  <input type="text" data-ws-custom placeholder="or type name…" value="' + (workspaces.indexOf(wsName) < 0 ? esc(wsName) : '') + '"';
+                html += '         class="w-36 rounded-lg border border-input bg-background px-2 py-1.5 text-xs text-foreground';
+                html += '                font-mono placeholder:text-placeholder focus:outline-none focus:ring-2';
+                html += '                focus:ring-ring/40 focus:border-primary hover:border-input-hover transition-colors"/>';
+                html += '  <button type="button" data-action="remove-ws"';
+                html += '          class="p-1 rounded text-muted hover:text-danger hover:bg-danger/10 transition-colors">';
+                html += '    <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">';
+                html += '      <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg></button>';
+                html += '</div>';
+
+                // Workspace role checkboxes
+                html += '<div class="flex flex-wrap gap-2">';
+                workspaceRoleNames.forEach(function (role) {
+                    var checked = roles.indexOf(role) >= 0;
+                    html += roleCheckbox(role, 'workspace', checked, false);
+                });
+                html += '</div>';
+
+                html += '</div>';
+                return html;
+            }
+
+            /* ── Wire workspace binding events ───────── */
+            function wireWsBinding(bindingEl, subjectData) {
+                var nameSelect = bindingEl.querySelector('[data-ws-name]');
+                var customInput = bindingEl.querySelector('[data-ws-custom]');
+
+                function getWsName() {
+                    var custom = customInput.value.trim();
+                    return custom || nameSelect.value;
+                }
+
+                function rebuildWsRoles() {
+                    var ws = {};
+                    var card = bindingEl.closest('[data-subject-id]');
+                    card.querySelectorAll('[data-ws-binding]').forEach(function (b) {
+                        var bName = b.querySelector('[data-ws-custom]').value.trim() || b.querySelector('[data-ws-name]').value;
+                        if (!bName) return;
+                        ws[bName] = [];
+                        b.querySelectorAll('[data-role-scope="workspace"]:checked').forEach(function (cb) {
+                            ws[bName].push(cb.value);
+                        });
+                    });
+                    subjectData.workspaceRoles = ws;
+                    syncJson();
+                }
+
+                nameSelect.addEventListener('change', rebuildWsRoles);
+                customInput.addEventListener('input', rebuildWsRoles);
+
+                bindingEl.querySelectorAll('[data-role-scope="workspace"]').forEach(function (cb) {
+                    cb.addEventListener('change', rebuildWsRoles);
+                });
+
+                bindingEl.querySelector('[data-action="remove-ws"]').addEventListener('click', function () {
+                    bindingEl.remove();
+                    rebuildWsRoles();
+                });
+            }
+
+            /* ── Role checkbox HTML helper ───────────── */
+            function roleCheckbox(role, scope, checked, isSuper) {
+                var shortName = role.replace('TESSERA_', '');
+                var colorClass = isSuper
+                    ? 'peer-checked:bg-accent/15 peer-checked:border-accent/50 peer-checked:text-accent'
+                    : scope === 'global'
+                        ? 'peer-checked:bg-accent/10 peer-checked:border-accent/30 peer-checked:text-accent'
+                        : 'peer-checked:bg-primary/10 peer-checked:border-primary/30 peer-checked:text-primary';
+
+                return '<label class="relative cursor-pointer">'
+                    + '<input type="checkbox" value="' + role + '" data-role-scope="' + scope + '"'
+                    + (checked ? ' checked' : '')
+                    + ' class="peer sr-only"/>'
+                    + '<span class="inline-flex items-center rounded-lg border border-border bg-background'
+                    + ' px-2.5 py-1 text-xs font-mono text-muted transition-all ' + colorClass + '">'
+                    + shortName + '</span></label>';
+            }
+
+            /* ── Collect checked roles from a card ───── */
+            function collectChecked(card, scope) {
+                var roles = [];
+                card.querySelectorAll('[data-role-scope="' + scope + '"]:checked').forEach(function (cb) {
+                    roles.push(cb.value);
+                });
+                return roles;
+            }
+
+            /* ── Sync state → JSON preview ───────────── */
+            function syncJson() {
+                // Build clean output (strip _id)
+                var output = {
+                    schemaVersion: policy.schemaVersion || 1,
+                    subjects: policy.subjects.map(function (s) {
+                        var clean = {
+                            subject: s.subject || '',
+                            globalRoles: s.globalRoles || [],
+                            workspaceRoles: s.workspaceRoles || {}
+                        };
+                        // Remove empty workspace entries
+                        Object.keys(clean.workspaceRoles).forEach(function (k) {
+                            if (!k || clean.workspaceRoles[k].length === 0) {
+                                delete clean.workspaceRoles[k];
+                            }
+                        });
+                        return clean;
+                    })
+                };
+
+                var jsonStr = JSON.stringify(output, null, 2);
+                preview.textContent = jsonStr;
+                editor.value = jsonStr;
+                saveJson.value = jsonStr;
+            }
+
+            /* ── JSON edit toggle ────────────────────── */
+            window.toggleJsonEdit = function () {
+                jsonEditMode = !jsonEditMode;
+                preview.classList.toggle('hidden', jsonEditMode);
+                editor.classList.toggle('hidden', !jsonEditMode);
+                editToggle.textContent = jsonEditMode ? 'Visual' : 'Edit Raw';
+
+                if (!jsonEditMode) {
+                    // Parse edited JSON back into state
+                    try {
+                        var parsed = JSON.parse(editor.value);
+                        policy = parsed;
+                        if (!policy.subjects) policy.subjects = [];
+                        // Re-render all subjects
+                        container.innerHTML = '';
+                        subjectIdSeq = 0;
+                        policy.subjects.forEach(function (s) { renderSubject(s); });
+                        syncJson();
+                    } catch (e) {
+                        alert('Invalid JSON: ' + e.message);
+                        jsonEditMode = true;
+                        preview.classList.add('hidden');
+                        editor.classList.remove('hidden');
+                        editToggle.textContent = 'Visual';
+                    }
+                }
+            };
+
+            // Keep saveJson in sync when editing raw
+            editor.addEventListener('input', function () {
+                saveJson.value = editor.value;
+            });
+
+            /* ── Save form hook ──────────────────────── */
+            document.getElementById('save-form').addEventListener('submit', function () {
+                if (!jsonEditMode) {
+                    syncJson(); // Ensure latest visual state is serialized
+                }
+            });
+
+            /* ── Helpers ─────────────────────────────── */
+            function esc(s) {
+                return String(s || '').replace(/&/g, '&amp;').replace(/"/g, '&quot;')
+                    .replace(/</g, '&lt;').replace(/>/g, '&gt;');
+            }
+
+        })();
+    </script>
+
+</th:block>
+
+</body>
+</html>

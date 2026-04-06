@@ -1,5 +1,7 @@
 package live.omnisource.tessera.web;
 
+import live.omnisource.tessera.security.rbac.TesseraRole;
+import live.omnisource.tessera.security.rbac.annotations.RequireWorkspaceRole;
 import live.omnisource.tessera.sync.AsyncSyncRunner;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
@@ -20,25 +22,26 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 @RequestMapping("/workspaces/{workspace}/datastores/{datastore}/layers/{layer}/sync")
 public class SyncController {
 
-    private final AsyncSyncRunner asyncRunner;
+  private final AsyncSyncRunner asyncRunner;
 
-    public SyncController(AsyncSyncRunner asyncRunner) {
-        this.asyncRunner = asyncRunner;
-    }
+  public SyncController(AsyncSyncRunner asyncRunner) {
+    this.asyncRunner = asyncRunner;
+  }
 
-    @PostMapping
-    public String triggerSync(@PathVariable String workspace,
-                              @PathVariable String datastore,
-                              @PathVariable String layer,
-                              RedirectAttributes redirect) {
+  @RequireWorkspaceRole(value = TesseraRole.TESSERA_SYNC_OPERATOR, workspaceParam = "workspace")
+  @PostMapping
+  public String triggerSync(@PathVariable String workspace,
+                            @PathVariable String datastore,
+                            @PathVariable String layer,
+                            RedirectAttributes redirect) {
 
-        log.info("Sync triggered for {}/{}/{}", workspace, datastore, layer);
-        asyncRunner.run(workspace, datastore, layer);
+    log.info("Sync triggered for {}/{}/{}", workspace, datastore, layer);
+    asyncRunner.run(workspace, datastore, layer);
 
-        redirect.addFlashAttribute("success",
-                "Sync started for layer '" + layer + "'. Features are being ingested in the background.");
+    redirect.addFlashAttribute("success",
+            "Sync started for layer '" + layer + "'. Features are being ingested in the background.");
 
-        return "redirect:/workspaces/" + workspace + "/datastores/"
-                + datastore + "/layers/" + layer;
-    }
+    return "redirect:/workspaces/" + workspace + "/datastores/"
+            + datastore + "/layers/" + layer;
+  }
 }

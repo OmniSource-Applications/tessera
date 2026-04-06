@@ -1,0 +1,10 @@
+{
+  "name": "sources.sync_status",
+  "description": "Sync status and lag for all external sources",
+  "category": "STATIC",
+  "querySql": "SELECT es.name, es.source_type, es.sync_strategy, es.is_active, sc.table_name, sc.checkpoint_type, sc.checkpoint_value, sc.rows_processed, sc.last_synced_at, now() - sc.last_synced_at AS lag FROM tessera.external_sources es LEFT JOIN tessera.sync_checkpoints sc ON sc.source_id = es.id ORDER BY es.name, sc.table_name",
+  "paramSchema": {},
+  "timeoutMs": 30000,
+  "streaming": false,
+  "tags": ["ops", "sync", "monitoring"]
+}

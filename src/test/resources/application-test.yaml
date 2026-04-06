@@ -1,0 +1,57 @@
+spring:
+  application:
+    name: tessera-test
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        dialect: org.hibernate.spatial.dialect.postgis.PostgisPG10Dialect
+        default_schema: tessera
+        jdbc:
+          batch_size: 100
+
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    schemas: tessera
+
+  threads:
+    virtual:
+      enabled: true
+
+tessera:
+  crypto:
+    salt: "dGVzdHNhbHQxMjM0NTY3ODkwYWJjZGVmZ2hpamtsbW4="
+
+  h3:
+    resolutions: [ 7, 9 ]
+    batch-size: 100
+
+  sync:
+    polling-interval-ms: 60000
+    batch-size: 100
+
+  catalog:
+    cache-ttl-seconds: 5
+
+  connectors:
+    cassandra:
+      sessions-max: 2
+      expiration-minutes: 5
+
+server:
+  servlet:
+    context-path: /tessera
+
+logging:
+  level:
+    root: WARN
+    live.omnisource.tessera: INFO
+    org.testcontainers: INFO
+
+management:
+  health:
+    cassandra:
+      enabled: false

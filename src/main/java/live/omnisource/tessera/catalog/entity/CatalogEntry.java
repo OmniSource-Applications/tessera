@@ -1,5 +1,6 @@
 package live.omnisource.tessera.catalog.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import live.omnisource.tessera.config.JsonbConverter;
 import lombok.Getter;
@@ -18,64 +19,69 @@ import java.util.UUID;
  * <p>Queries use named parameters (e.g. {@code :minLon}) and include a
  * JSON Schema describing their expected parameters. The execution engine
  * validates inputs against this schema before running the SQL.</p>
+ *
+ * <p>This entity is used both by JPA (DB storage for query execution) and
+ * by Jackson (file-based storage in data_dir). The file is the source of
+ * truth; the DB copy is synced on startup.</p>
  */
 @Getter
 @Setter
 @Entity
 @Table(name = "query_catalog", schema = "tessera")
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class CatalogEntry {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    private UUID id;
+  @Id
+  @GeneratedValue(strategy = GenerationType.UUID)
+  private UUID id;
 
-    @Column(nullable = false, unique = true)
-    private String name;
+  @Column(nullable = false, unique = true)
+  private String name;
 
-    private String description;
+  private String description;
 
-    @Column(nullable = false)
-    private String category;
+  @Column(nullable = false)
+  private String category;
 
-    @Column(name = "query_sql", nullable = false, columnDefinition = "TEXT")
-    private String querySql;
+  @Column(name = "query_sql", nullable = false, columnDefinition = "TEXT")
+  private String querySql;
 
-    @Column(name = "param_schema", columnDefinition = "jsonb")
-    @Convert(converter = JsonbConverter.class)
-    private Map<String, Object> paramSchema;
+  @Column(name = "param_schema", columnDefinition = "jsonb")
+  @Convert(converter = JsonbConverter.class)
+  private Map<String, Object> paramSchema;
 
-    @Column(name = "result_schema", columnDefinition = "jsonb")
-    @Convert(converter = JsonbConverter.class)
-    private Map<String, Object> resultSchema;
+  @Column(name = "result_schema", columnDefinition = "jsonb")
+  @Convert(converter = JsonbConverter.class)
+  private Map<String, Object> resultSchema;
 
-    @Column(name = "timeout_ms", nullable = false)
-    private int timeoutMs = 30_000;
+  @Column(name = "timeout_ms", nullable = false)
+  private int timeoutMs = 30_000;
 
-    @Column(name = "is_streaming", nullable = false)
-    private boolean streaming = false;
+  @Column(name = "is_streaming", nullable = false)
+  private boolean streaming = false;
 
-    @Column(name = "cache_ttl_sec")
-    private Integer cacheTtlSec;
+  @Column(name = "cache_ttl_sec")
+  private Integer cacheTtlSec;
 
-    @Column(columnDefinition = "TEXT[]")
-    @JdbcTypeCode(SqlTypes.ARRAY)
-    private List<String> tags;
+  @Column(columnDefinition = "TEXT[]")
+  @JdbcTypeCode(SqlTypes.ARRAY)
+  private List<String> tags;
 
-    @Column(name = "created_at", nullable = false, updatable = false)
-    private Instant createdAt;
+  @Column(name = "created_at", nullable = false, updatable = false)
+  private Instant createdAt;
 
-    @Column(name = "updated_at", nullable = false)
-    private Instant updatedAt;
+  @Column(name = "updated_at", nullable = false)
+  private Instant updatedAt;
 
-    @PrePersist
-    void prePersist() {
-        var now = Instant.now();
-        createdAt = now;
-        updatedAt = now;
-    }
+  @PrePersist
+  void prePersist() {
+    var now = Instant.now();
+    createdAt = now;
+    updatedAt = now;
+  }
 
-    @PreUpdate
-    void preUpdate() {
-        updatedAt = Instant.now();
-    }
+  @PreUpdate
+  void preUpdate() {
+    updatedAt = Instant.now();
+  }
 }

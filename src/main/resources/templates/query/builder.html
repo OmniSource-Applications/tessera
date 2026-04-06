@@ -1,0 +1,770 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<th:block th:fragment="content">
+
+    <!-- Breadcrumb -->
+    <nav class="mb-6 text-sm text-muted">
+        <a th:href="@{/query}" class="hover:text-foreground transition-colors">Query Catalog</a>
+        <span class="mx-1.5">/</span>
+        <span class="text-foreground font-medium">Builder</span>
+    </nav>
+
+    <!-- Flash messages -->
+    <div th:if="${success}"
+         class="mb-6 rounded-lg bg-success/10 border border-success/20 px-4 py-3 text-sm text-success">
+        <span th:text="${success}">Success</span>
+    </div>
+    <div th:if="${error}"
+         class="mb-6 rounded-lg bg-danger/10 border border-danger/20 px-4 py-3 text-sm text-danger">
+        <span th:text="${error}">Error</span>
+    </div>
+
+    <div class="grid grid-cols-1 xl:grid-cols-12 gap-6">
+
+        <!-- ═══════════════════════════════════════════════════
+             LEFT: Builder Controls
+             ═══════════════════════════════════════════════════ -->
+        <div class="xl:col-span-7 space-y-6">
+
+            <!-- ── Table & Alias ──────────────────────── -->
+            <div class="bg-surface border border-border rounded-xl p-5">
+                <h3 class="text-sm font-semibold text-foreground mb-3">Source Table</h3>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label for="qb-table" class="block text-xs font-medium text-muted mb-1">Table</label>
+                        <select id="qb-table"
+                                class="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm text-foreground
+                                       focus:outline-none focus:ring-2 focus:ring-ring/40 focus:border-primary
+                                       hover:border-input-hover transition-colors">
+                            <option value="">Loading…</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="qb-alias" class="block text-xs font-medium text-muted mb-1">Alias</label>
+                        <input id="qb-alias" type="text" value="f" placeholder="f"
+                               class="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm text-foreground
+                                      font-mono placeholder:text-placeholder focus:outline-none focus:ring-2
+                                      focus:ring-ring/40 focus:border-primary hover:border-input-hover transition-colors"/>
+                    </div>
+                </div>
+
+                <!-- JOIN toggle -->
+                <div class="mt-4">
+                    <div class="flex items-center gap-2">
+                        <input id="qb-join-toggle" type="checkbox"
+                               class="h-4 w-4 rounded border-input text-primary focus:ring-ring/40"/>
+                        <label for="qb-join-toggle" class="text-sm text-foreground">
+                            JOIN with another table
+                        </label>
+                    </div>
+                    <div id="qb-join-section" class="hidden mt-3 p-4 rounded-lg bg-background/50 border border-border space-y-3">
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                            <div>
+                                <label class="block text-xs font-medium text-muted mb-1">Join Table</label>
+                                <select id="qb-join-table"
+                                        class="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm text-foreground
+                                               focus:outline-none focus:ring-2 focus:ring-ring/40 focus:border-primary
+                                               hover:border-input-hover transition-colors">
+                                    <option value="">Select…</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-muted mb-1">Join Alias</label>
+                                <input id="qb-join-alias" type="text" value="h" placeholder="h"
+                                       class="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm text-foreground
+                                              font-mono placeholder:text-placeholder focus:outline-none focus:ring-2
+                                              focus:ring-ring/40 focus:border-primary hover:border-input-hover transition-colors"/>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-muted mb-1">Join Type</label>
+                                <select id="qb-join-type"
+                                        class="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm text-foreground
+                                               focus:outline-none focus:ring-2 focus:ring-ring/40 focus:border-primary
+                                               hover:border-input-hover transition-colors">
+                                    <option value="JOIN">INNER JOIN</option>
+                                    <option value="LEFT JOIN">LEFT JOIN</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-muted mb-1">ON Clause</label>
+                            <input id="qb-join-on" type="text"
+                                   placeholder="f.id = h.feature_id AND f.ingested_at = h.feature_ingest"
+                                   class="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm text-foreground
+                                          font-mono placeholder:text-placeholder focus:outline-none focus:ring-2
+                                          focus:ring-ring/40 focus:border-primary hover:border-input-hover transition-colors"/>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ── Columns ─────────────────────────────── -->
+            <div class="bg-surface border border-border rounded-xl p-5">
+                <div class="flex items-center justify-between mb-3">
+                    <h3 class="text-sm font-semibold text-foreground">Columns</h3>
+                    <div class="flex gap-2">
+                        <button type="button" onclick="selectAllColumns(true)"
+                                class="text-xs text-primary hover:text-primary-hover transition-colors">All</button>
+                        <span class="text-xs text-muted">|</span>
+                        <button type="button" onclick="selectAllColumns(false)"
+                                class="text-xs text-primary hover:text-primary-hover transition-colors">None</button>
+                    </div>
+                </div>
+                <div id="qb-columns" class="grid grid-cols-2 sm:grid-cols-3 gap-2 text-sm">
+                    <p class="text-xs text-muted col-span-full">Select a table first.</p>
+                </div>
+
+                <!-- Custom expressions -->
+                <div class="mt-4 border-t border-border pt-3">
+                    <label class="block text-xs font-medium text-muted mb-1">Custom Expressions</label>
+                    <input id="qb-custom-cols" type="text"
+                           placeholder="ST_AsGeoJSON(f.geometry)::jsonb AS geometry, count(*) AS cnt"
+                           class="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm text-foreground
+                                  font-mono placeholder:text-placeholder focus:outline-none focus:ring-2
+                                  focus:ring-ring/40 focus:border-primary hover:border-input-hover transition-colors"/>
+                    <p class="text-xs text-muted mt-1">Comma-separated. Added after selected columns.</p>
+                </div>
+            </div>
+
+            <!-- ── WHERE Conditions ────────────────────── -->
+            <div class="bg-surface border border-border rounded-xl p-5">
+                <div class="flex items-center justify-between mb-3">
+                    <h3 class="text-sm font-semibold text-foreground">WHERE Conditions</h3>
+                    <button type="button" id="qb-add-where"
+                            class="inline-flex items-center gap-1 text-xs font-medium text-primary hover:text-primary-hover transition-colors">
+                        <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/>
+                        </svg>
+                        Add Condition
+                    </button>
+                </div>
+
+                <div id="qb-where-rows" class="space-y-2"></div>
+
+                <!-- Spatial helper -->
+                <div class="mt-4 border-t border-border pt-3">
+                    <label class="block text-xs font-medium text-muted mb-2">Spatial Filter Preset</label>
+                    <div class="flex flex-wrap gap-2">
+                        <button type="button" onclick="addSpatialPreset('bbox')"
+                                class="rounded-lg border border-border bg-background px-3 py-1.5 text-xs font-medium text-foreground
+                                       hover:border-primary/40 hover:text-primary transition-colors">
+                            Bounding Box
+                        </button>
+                        <button type="button" onclick="addSpatialPreset('radius')"
+                                class="rounded-lg border border-border bg-background px-3 py-1.5 text-xs font-medium text-foreground
+                                       hover:border-primary/40 hover:text-primary transition-colors">
+                            Within Radius
+                        </button>
+                        <button type="button" onclick="addSpatialPreset('source')"
+                                class="rounded-lg border border-border bg-background px-3 py-1.5 text-xs font-medium text-foreground
+                                       hover:border-primary/40 hover:text-primary transition-colors">
+                            Source Filter
+                        </button>
+                        <button type="button" onclick="addSpatialPreset('since')"
+                                class="rounded-lg border border-border bg-background px-3 py-1.5 text-xs font-medium text-foreground
+                                       hover:border-primary/40 hover:text-primary transition-colors">
+                            Since Timestamp
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ── GROUP BY / ORDER BY / LIMIT ─────────── -->
+            <div class="bg-surface border border-border rounded-xl p-5">
+                <h3 class="text-sm font-semibold text-foreground mb-3">Ordering &amp; Limits</h3>
+                <div class="space-y-3">
+                    <div>
+                        <label class="block text-xs font-medium text-muted mb-1">GROUP BY</label>
+                        <input id="qb-groupby" type="text" placeholder="e.g. h.h3_index, h.h3_index_int"
+                               class="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm text-foreground
+                                      font-mono placeholder:text-placeholder focus:outline-none focus:ring-2
+                                      focus:ring-ring/40 focus:border-primary hover:border-input-hover transition-colors"/>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                        <div>
+                            <label class="block text-xs font-medium text-muted mb-1">ORDER BY</label>
+                            <input id="qb-orderby" type="text" placeholder="f.updated_at DESC"
+                                   class="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm text-foreground
+                                          font-mono placeholder:text-placeholder focus:outline-none focus:ring-2
+                                          focus:ring-ring/40 focus:border-primary hover:border-input-hover transition-colors"/>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-muted mb-1">LIMIT</label>
+                            <input id="qb-limit" type="text" placeholder=":limit" value=":limit"
+                                   class="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm text-foreground
+                                          font-mono placeholder:text-placeholder focus:outline-none focus:ring-2
+                                          focus:ring-ring/40 focus:border-primary hover:border-input-hover transition-colors"/>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-muted mb-1">OFFSET</label>
+                            <input id="qb-offset" type="text" placeholder=":offset"
+                                   class="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm text-foreground
+                                          font-mono placeholder:text-placeholder focus:outline-none focus:ring-2
+                                          focus:ring-ring/40 focus:border-primary hover:border-input-hover transition-colors"/>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ═══════════════════════════════════════════════════
+             RIGHT: SQL Preview + Test + Save
+             ═══════════════════════════════════════════════════ -->
+        <div class="xl:col-span-5 space-y-6">
+
+            <!-- ── Live SQL Preview ────────────────────── -->
+            <div class="bg-surface border border-border rounded-xl overflow-hidden sticky top-20">
+                <div class="px-5 py-3 border-b border-border flex items-center justify-between">
+                    <h3 class="text-sm font-semibold text-foreground">Generated SQL</h3>
+                    <button type="button" onclick="copySQL()"
+                            class="text-xs font-medium text-primary hover:text-primary-hover transition-colors">
+                        Copy
+                    </button>
+                </div>
+                <pre id="qb-sql-preview"
+                     class="p-4 text-xs text-foreground font-mono leading-relaxed bg-background/50
+                            overflow-x-auto max-h-64 whitespace-pre-wrap">SELECT *
+FROM tessera.geo_features f</pre>
+
+                <!-- Detected parameters -->
+                <div id="qb-params-section" class="hidden border-t border-border px-5 py-3">
+                    <p class="text-xs font-medium text-muted mb-2">Detected Parameters</p>
+                    <div id="qb-params-list" class="flex flex-wrap gap-1.5"></div>
+                </div>
+
+                <!-- Test Execute -->
+                <div class="border-t border-border px-5 py-3">
+                    <div class="flex items-center gap-3">
+                        <button type="button" id="qb-test-btn" onclick="testExecute()"
+                                class="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm
+                                       font-medium text-primary-foreground hover:bg-primary-hover
+                                       active:scale-[0.98] focus:outline-none focus:ring-2
+                                       focus:ring-ring/40 transition-all">
+                            <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                      d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.347a1.125 1.125 0 0 1 0 1.972l-11.54 6.347a1.125 1.125 0 0 1-1.667-.986V5.653Z"/>
+                            </svg>
+                            Test
+                        </button>
+                        <span id="qb-test-status" class="text-xs text-muted"></span>
+                    </div>
+
+                    <!-- Test params (filled when params detected) -->
+                    <div id="qb-test-params" class="hidden mt-3 space-y-2"></div>
+                </div>
+
+                <!-- Test Results -->
+                <div id="qb-test-results" class="hidden border-t border-border">
+                    <div class="px-5 py-2 flex items-center gap-3">
+                        <span id="qb-result-badge" class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium"></span>
+                        <span id="qb-result-meta" class="text-xs text-muted"></span>
+                    </div>
+                    <div id="qb-result-table-wrap" class="overflow-x-auto max-h-64">
+                        <table id="qb-result-table" class="w-full text-xs">
+                            <thead id="qb-result-thead" class="border-b border-border text-left"></thead>
+                            <tbody id="qb-result-tbody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ── Save to Catalog ─────────────────────── -->
+            <div class="bg-surface border border-border rounded-xl p-5">
+                <h3 class="text-sm font-semibold text-foreground mb-4">Save to Catalog</h3>
+                <form th:action="@{/query/builder/save}" method="post" id="qb-save-form" class="space-y-3">
+                    <input type="hidden" name="querySql" id="qb-save-sql"/>
+                    <input type="hidden" name="paramSchemaJson" id="qb-save-schema"/>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-xs font-medium text-muted mb-1">Query Name</label>
+                            <input type="text" name="name" required placeholder="features.my_query"
+                                   class="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm text-foreground
+                                          font-mono placeholder:text-placeholder focus:outline-none focus:ring-2
+                                          focus:ring-ring/40 focus:border-primary hover:border-input-hover transition-colors"/>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-muted mb-1">Category</label>
+                            <select name="category"
+                                    class="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm text-foreground
+                                           focus:outline-none focus:ring-2 focus:ring-ring/40 focus:border-primary
+                                           hover:border-input-hover transition-colors">
+                                <option value="CUSTOM">CUSTOM</option>
+                                <option value="STATIC">STATIC</option>
+                                <option value="H3">H3</option>
+                                <option value="LIVE">LIVE</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-muted mb-1">Description</label>
+                        <input type="text" name="description" placeholder="What this query does"
+                               class="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm text-foreground
+                                      placeholder:text-placeholder focus:outline-none focus:ring-2
+                                      focus:ring-ring/40 focus:border-primary hover:border-input-hover transition-colors"/>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-xs font-medium text-muted mb-1">Tags</label>
+                            <input type="text" name="tags" placeholder="spatial, bbox"
+                                   class="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm text-foreground
+                                          placeholder:text-placeholder focus:outline-none focus:ring-2
+                                          focus:ring-ring/40 focus:border-primary hover:border-input-hover transition-colors"/>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-muted mb-1">Timeout (ms)</label>
+                            <input type="number" name="timeoutMs" value="30000" min="100" max="300000"
+                                   class="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm text-foreground
+                                          focus:outline-none focus:ring-2 focus:ring-ring/40 focus:border-primary
+                                          hover:border-input-hover transition-colors"/>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <input type="checkbox" name="streaming" value="true"
+                               class="h-4 w-4 rounded border-input text-primary focus:ring-ring/40"/>
+                        <label class="text-sm text-foreground">Streaming query</label>
+                    </div>
+                    <div class="pt-2">
+                        <button type="submit"
+                                class="rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground
+                                       hover:bg-primary-hover active:scale-[0.98]
+                                       focus:outline-none focus:ring-2 focus:ring-ring/40 transition-all">
+                            Save to Catalog
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════
+         JavaScript — Query Builder Engine
+         ═══════════════════════════════════════════════════════ -->
+    <script th:inline="javascript">
+        (function () {
+            'use strict';
+
+            var contextPath = /*[[${@environment.getProperty('server.servlet.context-path', '')}]]*/ '';
+
+            /* ── State ──────────────────────────────────── */
+            var tablesMeta   = [];  // [{schema, table, qualified, columns: [...]}]
+            var whereRows    = [];  // [{id, raw}]
+            var whereIdSeq   = 0;
+
+            /* ── Element refs ───────────────────────────── */
+            var elTable      = document.getElementById('qb-table');
+            var elAlias      = document.getElementById('qb-alias');
+            var elColumns    = document.getElementById('qb-columns');
+            var elCustomCols = document.getElementById('qb-custom-cols');
+            var elWhereRows  = document.getElementById('qb-where-rows');
+            var elGroupBy    = document.getElementById('qb-groupby');
+            var elOrderBy    = document.getElementById('qb-orderby');
+            var elLimit      = document.getElementById('qb-limit');
+            var elOffset     = document.getElementById('qb-offset');
+            var elPreview    = document.getElementById('qb-sql-preview');
+            var elJoinToggle = document.getElementById('qb-join-toggle');
+            var elJoinSection = document.getElementById('qb-join-section');
+            var elJoinTable  = document.getElementById('qb-join-table');
+            var elJoinAlias  = document.getElementById('qb-join-alias');
+            var elJoinType   = document.getElementById('qb-join-type');
+            var elJoinOn     = document.getElementById('qb-join-on');
+
+            /* ── Init: fetch table metadata ─────────────── */
+            fetch(contextPath + '/api/builder/tables')
+                .then(function (r) { return r.json(); })
+                .then(function (data) {
+                    tablesMeta = data;
+                    elTable.innerHTML = '<option value="">Select a table…</option>';
+                    elJoinTable.innerHTML = '<option value="">Select…</option>';
+                    data.forEach(function (t) {
+                        var opt = '<option value="' + t.qualified + '">' + t.qualified + '</option>';
+                        elTable.innerHTML += opt;
+                        elJoinTable.innerHTML += opt;
+                    });
+                    // Default to geo_features
+                    var def = data.find(function (t) { return t.table === 'geo_features'; });
+                    if (def) {
+                        elTable.value = def.qualified;
+                        onTableChange();
+                    }
+                })
+                .catch(function () {
+                    elTable.innerHTML = '<option value="">Failed to load tables</option>';
+                });
+
+            /* ── Table change → populate columns ────────── */
+            function onTableChange() {
+                var qualified = elTable.value;
+                var meta = tablesMeta.find(function (t) { return t.qualified === qualified; });
+                if (!meta) {
+                    elColumns.innerHTML = '<p class="text-xs text-muted col-span-full">Select a table first.</p>';
+                    recompose();
+                    return;
+                }
+
+                var html = '';
+                meta.columns.forEach(function (col) {
+                    var isGeo = col.isGeometry;
+                    var badge = isGeo ? '<span class="ml-1 text-[0.6rem] text-accent">(geo)</span>' : '';
+                    var checked = !isGeo ? 'checked' : ''; // Don't check geo columns by default (use custom expr)
+                    html += '<label class="flex items-center gap-1.5 px-2 py-1 rounded hover:bg-background/50 cursor-pointer">'
+                        + '<input type="checkbox" data-col="' + col.name + '" ' + checked
+                        + ' class="qb-col-check h-3.5 w-3.5 rounded border-input text-primary focus:ring-ring/40"/>'
+                        + '<span class="text-xs font-mono text-foreground">' + col.name + '</span>'
+                        + badge + '</label>';
+                });
+                elColumns.innerHTML = html;
+
+                // Attach listeners
+                elColumns.querySelectorAll('.qb-col-check').forEach(function (cb) {
+                    cb.addEventListener('change', recompose);
+                });
+
+                recompose();
+            }
+
+            elTable.addEventListener('change', onTableChange);
+            elAlias.addEventListener('input', recompose);
+            elCustomCols.addEventListener('input', recompose);
+            elGroupBy.addEventListener('input', recompose);
+            elOrderBy.addEventListener('input', recompose);
+            elLimit.addEventListener('input', recompose);
+            elOffset.addEventListener('input', recompose);
+            elJoinTable.addEventListener('change', recompose);
+            elJoinAlias.addEventListener('input', recompose);
+            elJoinType.addEventListener('change', recompose);
+            elJoinOn.addEventListener('input', recompose);
+
+            /* ── JOIN toggle ─────────────────────────────── */
+            elJoinToggle.addEventListener('change', function () {
+                elJoinSection.classList.toggle('hidden', !this.checked);
+                recompose();
+            });
+
+            /* ── Column helpers ──────────────────────────── */
+            window.selectAllColumns = function (checked) {
+                elColumns.querySelectorAll('.qb-col-check').forEach(function (cb) {
+                    cb.checked = checked;
+                });
+                recompose();
+            };
+
+            /* ── WHERE rows ──────────────────────────────── */
+            function addWhereRow(initial) {
+                var id = ++whereIdSeq;
+                var val = initial || '';
+                whereRows.push({ id: id, raw: val });
+
+                var div = document.createElement('div');
+                div.className = 'flex items-center gap-2';
+                div.dataset.whereId = id;
+
+                var connector = whereRows.length > 1 ? '<span class="text-xs font-mono text-muted w-10 text-center shrink-0">AND</span>' : '<span class="w-10 shrink-0"></span>';
+
+                div.innerHTML = connector
+                    + '<input type="text" value="' + escAttr(val) + '" placeholder="f.source_id = :sourceId::uuid"'
+                    + ' class="qb-where-input flex-1 rounded-lg border border-input bg-background px-3 py-2 text-sm text-foreground'
+                    + ' font-mono placeholder:text-placeholder focus:outline-none focus:ring-2 focus:ring-ring/40'
+                    + ' focus:border-primary hover:border-input-hover transition-colors"/>'
+                    + '<button type="button" data-remove="' + id + '"'
+                    + ' class="p-1.5 rounded-lg text-muted hover:text-danger hover:bg-danger/10 transition-colors shrink-0">'
+                    + '<svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">'
+                    + '<path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg></button>';
+
+                elWhereRows.appendChild(div);
+
+                div.querySelector('.qb-where-input').addEventListener('input', function () {
+                    var row = whereRows.find(function (r) { return r.id === id; });
+                    if (row) row.raw = this.value;
+                    recompose();
+                });
+
+                div.querySelector('[data-remove]').addEventListener('click', function () {
+                    whereRows = whereRows.filter(function (r) { return r.id !== id; });
+                    div.remove();
+                    // Re-render connectors
+                    var children = elWhereRows.children;
+                    for (var i = 0; i < children.length; i++) {
+                        var span = children[i].querySelector('span');
+                        if (span) span.textContent = i === 0 ? '' : 'AND';
+                    }
+                    recompose();
+                });
+
+                recompose();
+                return div.querySelector('.qb-where-input');
+            }
+
+            document.getElementById('qb-add-where').addEventListener('click', function () {
+                var input = addWhereRow('');
+                input.focus();
+            });
+
+            /* ── Spatial presets ──────────────────────────── */
+            window.addSpatialPreset = function (type) {
+                var a = elAlias.value || 'f';
+                switch (type) {
+                    case 'bbox':
+                        addWhereRow('ST_Intersects(' + a + '.geometry, ST_MakeEnvelope(:minLon, :minLat, :maxLon, :maxLat, 4326))');
+                        break;
+                    case 'radius':
+                        addWhereRow('ST_DWithin(' + a + '.geometry::geography, ST_Point(:lon, :lat, 4326)::geography, :radiusMeters)');
+                        break;
+                    case 'source':
+                        addWhereRow(a + '.source_id = COALESCE(:sourceId::uuid, ' + a + '.source_id)');
+                        break;
+                    case 'since':
+                        addWhereRow(a + '.updated_at > :since');
+                        break;
+                }
+            };
+
+            /* ── SQL Composition ─────────────────────────── */
+            function recompose() {
+                var table    = elTable.value;
+                var alias    = elAlias.value.trim() || '';
+                if (!table) { elPreview.textContent = '-- Select a table to begin'; return; }
+
+                var aliasPart = alias ? ' ' + alias : '';
+
+                // SELECT
+                var cols = [];
+                elColumns.querySelectorAll('.qb-col-check:checked').forEach(function (cb) {
+                    var colName = cb.dataset.col;
+                    cols.push(alias ? alias + '.' + colName : colName);
+                });
+                var custom = elCustomCols.value.trim();
+                if (custom) cols.push(custom);
+                var selectPart = cols.length > 0 ? cols.join(',\n       ') : '*';
+
+                // FROM
+                var fromPart = table + aliasPart;
+
+                // JOIN
+                var joinPart = '';
+                if (elJoinToggle.checked && elJoinTable.value) {
+                    var jAlias = elJoinAlias.value.trim();
+                    var jType  = elJoinType.value;
+                    var jOn    = elJoinOn.value.trim();
+                    joinPart = '\n' + jType + ' ' + elJoinTable.value + (jAlias ? ' ' + jAlias : '');
+                    if (jOn) joinPart += '\n    ON ' + jOn;
+                }
+
+                // WHERE
+                var conditions = whereRows
+                    .map(function (r) { return r.raw.trim(); })
+                    .filter(function (s) { return s.length > 0; });
+                var wherePart = conditions.length > 0
+                    ? '\nWHERE ' + conditions.join('\n  AND ')
+                    : '';
+
+                // GROUP BY
+                var groupBy = elGroupBy.value.trim();
+                var groupPart = groupBy ? '\nGROUP BY ' + groupBy : '';
+
+                // ORDER BY
+                var orderBy = elOrderBy.value.trim();
+                var orderPart = orderBy ? '\nORDER BY ' + orderBy : '';
+
+                // LIMIT / OFFSET
+                var limit  = elLimit.value.trim();
+                var offset = elOffset.value.trim();
+                var limitPart  = limit ? '\nLIMIT ' + limit : '';
+                var offsetPart = offset ? ' OFFSET ' + offset : '';
+
+                var sql = 'SELECT ' + selectPart
+                    + '\nFROM ' + fromPart
+                    + joinPart
+                    + wherePart
+                    + groupPart
+                    + orderPart
+                    + limitPart + offsetPart;
+
+                elPreview.textContent = sql;
+                updateParams(sql);
+            }
+
+            /* ── Param detection ─────────────────────────── */
+            function updateParams(sql) {
+                var regex = /:([a-zA-Z][a-zA-Z0-9_]*)/g;
+                var params = [];
+                var seen = {};
+                var match;
+                while ((match = regex.exec(sql)) !== null) {
+                    var name = match[1];
+                    if (!seen[name]) {
+                        seen[name] = true;
+                        params.push(name);
+                    }
+                }
+
+                var paramsSection = document.getElementById('qb-params-section');
+                var paramsList    = document.getElementById('qb-params-list');
+                var testParams    = document.getElementById('qb-test-params');
+
+                if (params.length === 0) {
+                    paramsSection.classList.add('hidden');
+                    testParams.classList.add('hidden');
+                    testParams.innerHTML = '';
+                    return;
+                }
+
+                paramsSection.classList.remove('hidden');
+                paramsList.innerHTML = params.map(function (p) {
+                    return '<span class="inline-flex items-center rounded-md bg-primary/10 px-2 py-0.5 text-xs font-mono font-medium text-primary">:' + p + '</span>';
+                }).join('');
+
+                // Test param inputs
+                testParams.classList.remove('hidden');
+                testParams.innerHTML = '<p class="text-xs font-medium text-muted">Test Values:</p>';
+                params.forEach(function (p) {
+                    var existing = testParams.querySelector('[data-param="' + p + '"]');
+                    var val = existing ? existing.value : '';
+                    testParams.innerHTML += '<div class="flex items-center gap-2">'
+                        + '<span class="text-xs font-mono text-muted w-28 shrink-0">:' + p + '</span>'
+                        + '<input type="text" data-param="' + p + '" value="' + escAttr(val) + '"'
+                        + ' class="flex-1 rounded-lg border border-input bg-background px-2 py-1.5 text-xs text-foreground'
+                        + ' font-mono focus:outline-none focus:ring-2 focus:ring-ring/40 focus:border-primary'
+                        + ' hover:border-input-hover transition-colors"/></div>';
+                });
+
+                // Also build the param schema JSON for catalog save
+                var schema = { type: 'object', properties: {} };
+                params.forEach(function (p) {
+                    schema.properties[p] = { type: 'string' };
+                });
+                document.getElementById('qb-save-schema').value = JSON.stringify(schema);
+            }
+
+            /* ── Test Execute ────────────────────────────── */
+            window.testExecute = function () {
+                var sql = elPreview.textContent;
+                if (!sql || sql.startsWith('--')) return;
+
+                var statusEl = document.getElementById('qb-test-status');
+                statusEl.textContent = 'Running…';
+                statusEl.className = 'text-xs text-muted';
+
+                // Gather test params
+                var params = {};
+                document.querySelectorAll('#qb-test-params [data-param]').forEach(function (input) {
+                    var val = input.value.trim();
+                    if (val) params[input.dataset.param] = val;
+                });
+
+                // Use a temporary query name for ad-hoc execution
+                fetch(contextPath + '/api/queries', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        name: '_builder_test_' + Date.now(),
+                        category: 'CUSTOM',
+                        querySql: sql,
+                        timeoutMs: 10000,
+                        tags: ['_builder_temp']
+                    })
+                })
+                    .then(function (r) { return r.json(); })
+                    .then(function (entry) {
+                        // Execute it
+                        return fetch(contextPath + '/api/queries/' + entry.name + '/execute', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(params)
+                        })
+                            .then(function (r) { return r.json(); })
+                            .then(function (result) {
+                                renderTestResult(result);
+                                // Clean up temp query (DELETE uses UUID id)
+                                fetch(contextPath + '/api/queries/' + entry.id, { method: 'DELETE' });
+                            });
+                    })
+                    .catch(function (err) {
+                        statusEl.textContent = 'Error: ' + err.message;
+                        statusEl.className = 'text-xs text-danger';
+                    });
+            };
+
+            function renderTestResult(result) {
+                var statusEl   = document.getElementById('qb-test-status');
+                var resultsDiv = document.getElementById('qb-test-results');
+                var badge      = document.getElementById('qb-result-badge');
+                var meta       = document.getElementById('qb-result-meta');
+                var thead      = document.getElementById('qb-result-thead');
+                var tbody      = document.getElementById('qb-result-tbody');
+
+                resultsDiv.classList.remove('hidden');
+
+                if (result.success) {
+                    badge.className = 'inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium bg-success/10 text-success';
+                    badge.textContent = 'Success';
+                    meta.textContent = result.rowCount + ' rows in ' + result.elapsedMs + 'ms';
+                    statusEl.textContent = '';
+
+                    if (result.rows && result.rows.length > 0) {
+                        var cols = Object.keys(result.rows[0]);
+                        thead.innerHTML = '<tr class="border-b border-border">'
+                            + cols.map(function (c) { return '<th class="px-3 py-2 font-medium text-muted text-xs font-mono whitespace-nowrap">' + esc(c) + '</th>'; }).join('')
+                            + '</tr>';
+                        tbody.innerHTML = result.rows.slice(0, 50).map(function (row) {
+                            return '<tr class="border-b border-border/50 hover:bg-background/50">'
+                                + cols.map(function (c) {
+                                    var v = row[c];
+                                    var s = v === null ? 'null' : String(v);
+                                    if (s.length > 60) s = s.substring(0, 60) + '…';
+                                    return '<td class="px-3 py-1.5 text-foreground text-xs font-mono whitespace-nowrap">' + esc(s) + '</td>';
+                                }).join('')
+                                + '</tr>';
+                        }).join('');
+                    } else {
+                        thead.innerHTML = '';
+                        tbody.innerHTML = '<tr><td class="px-3 py-4 text-xs text-muted text-center">No rows returned.</td></tr>';
+                    }
+                } else {
+                    badge.className = 'inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium bg-danger/10 text-danger';
+                    badge.textContent = 'Failed';
+                    meta.textContent = result.elapsedMs + 'ms';
+                    statusEl.textContent = result.errorMessage || 'Unknown error';
+                    statusEl.className = 'text-xs text-danger';
+                    thead.innerHTML = '';
+                    tbody.innerHTML = '';
+                }
+            }
+
+            /* ── Copy SQL ────────────────────────────────── */
+            window.copySQL = function () {
+                var sql = elPreview.textContent;
+                navigator.clipboard.writeText(sql).then(function () {
+                    // Brief visual feedback
+                    var btn = document.querySelector('[onclick="copySQL()"]');
+                    var orig = btn.textContent;
+                    btn.textContent = 'Copied!';
+                    setTimeout(function () { btn.textContent = orig; }, 1500);
+                });
+            };
+
+            /* ── Save form hook ──────────────────────────── */
+            document.getElementById('qb-save-form').addEventListener('submit', function () {
+                document.getElementById('qb-save-sql').value = elPreview.textContent;
+            });
+
+            /* ── Helpers ─────────────────────────────────── */
+            function esc(s) {
+                var d = document.createElement('div');
+                d.textContent = s;
+                return d.innerHTML;
+            }
+            function escAttr(s) {
+                return s.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+            }
+
+        })();
+    </script>
+
+</th:block>
+
+</body>
+</html>

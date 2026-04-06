@@ -21,7 +21,7 @@
         <span th:text="${error}">Error</span>
     </div>
 
-    <!-- Create Data Store -->
+    <!-- ── Create Data Store ─────────────────────────────── -->
     <div class="bg-surface border border-border rounded-xl p-6 mb-8">
         <h2 class="text-lg font-semibold text-foreground mb-4">New Data Store</h2>
 
@@ -37,137 +37,190 @@
                            pattern="[a-zA-Z0-9][a-zA-Z0-9_-]{0,63}"
                            title="Letters, numbers, hyphens, underscores. Must start with a letter or number."
                            class="w-full rounded-lg border border-input bg-background px-3.5 py-2.5 text-sm text-foreground
-                        placeholder:text-placeholder focus:outline-none focus:ring-2 focus:ring-ring/40
-                        focus:border-primary hover:border-input-hover transition-colors"/>
+                                  placeholder:text-placeholder focus:outline-none focus:ring-2 focus:ring-ring/40
+                                  focus:border-primary hover:border-input-hover transition-colors"/>
                 </div>
                 <div>
                     <label for="ds-type" class="block text-sm font-medium text-foreground mb-1.5">Type</label>
                     <select id="ds-type" name="type" required
                             class="w-full rounded-lg border border-input bg-background px-3.5 py-2.5 text-sm text-foreground
-                         focus:outline-none focus:ring-2 focus:ring-ring/40 focus:border-primary
-                         hover:border-input-hover transition-colors">
+                                   focus:outline-none focus:ring-2 focus:ring-ring/40 focus:border-primary
+                                   hover:border-input-hover transition-colors">
                         <option value="">Select a type…</option>
                         <option value="POSTGIS">PostgreSQL / PostGIS</option>
+                        <option value="CASSANDRA">Cassandra</option>
                         <option value="MYSQL">MySQL</option>
                         <option value="ORACLE">Oracle DB</option>
-                        <option value="CASSANDRA">Cassandra</option>
                         <option value="ELASTICSEARCH">Elasticsearch</option>
                     </select>
                 </div>
             </div>
 
-            <!-- JDBC fields (PostGIS, MySQL, Oracle) -->
+            <!-- ════════════════════════════════════════════════
+                 JDBC Fields (PostGIS, MySQL, Oracle)
+                 ════════════════════════════════════════════════ -->
             <div id="jdbc-fields" class="hidden space-y-4">
-                <div>
-                    <label for="ds-url" class="block text-sm font-medium text-foreground mb-1.5">JDBC URL</label>
-                    <input id="ds-url" type="text" name="url"
-                           placeholder="jdbc:postgresql://localhost:5432/mydb"
-                           class="w-full rounded-lg border border-input bg-background px-3.5 py-2.5 text-sm text-foreground
-                        placeholder:text-placeholder focus:outline-none focus:ring-2 focus:ring-ring/40
-                        focus:border-primary hover:border-input-hover transition-colors"/>
+
+                <!-- Host + Port + Database -->
+                <div class="grid grid-cols-1 sm:grid-cols-12 gap-4">
+                    <div class="sm:col-span-5">
+                        <label for="ds-host" class="block text-sm font-medium text-foreground mb-1.5">Host</label>
+                        <input id="ds-host" type="text" name="_host"
+                               placeholder="localhost"
+                               class="w-full rounded-lg border border-input bg-background px-3.5 py-2.5 text-sm text-foreground
+                                      placeholder:text-placeholder focus:outline-none focus:ring-2 focus:ring-ring/40
+                                      focus:border-primary hover:border-input-hover transition-colors"/>
+                    </div>
+                    <div class="sm:col-span-2">
+                        <label for="ds-jdbc-port" class="block text-sm font-medium text-foreground mb-1.5">Port</label>
+                        <input id="ds-jdbc-port" type="number" name="port" value="5432" min="1" max="65535"
+                               class="w-full rounded-lg border border-input bg-background px-3.5 py-2.5 text-sm text-foreground
+                                      focus:outline-none focus:ring-2 focus:ring-ring/40 focus:border-primary
+                                      hover:border-input-hover transition-colors"/>
+                    </div>
+                    <div class="sm:col-span-5">
+                        <label for="ds-database" class="block text-sm font-medium text-foreground mb-1.5">
+                            <span id="db-label">Database</span>
+                        </label>
+                        <input id="ds-database" type="text" name="_database"
+                               placeholder="mydb"
+                               class="w-full rounded-lg border border-input bg-background px-3.5 py-2.5 text-sm text-foreground
+                                      placeholder:text-placeholder focus:outline-none focus:ring-2 focus:ring-ring/40
+                                      focus:border-primary hover:border-input-hover transition-colors"/>
+                    </div>
                 </div>
+
+                <!-- Username + Password -->
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                         <label for="ds-j-user" class="block text-sm font-medium text-foreground mb-1.5">Username</label>
                         <input id="ds-j-user" type="text" name="username"
                                placeholder="postgres"
                                class="w-full rounded-lg border border-input bg-background px-3.5 py-2.5 text-sm text-foreground
-                          placeholder:text-placeholder focus:outline-none focus:ring-2 focus:ring-ring/40
-                          focus:border-primary hover:border-input-hover transition-colors"/>
+                                      placeholder:text-placeholder focus:outline-none focus:ring-2 focus:ring-ring/40
+                                      focus:border-primary hover:border-input-hover transition-colors"/>
                     </div>
                     <div>
                         <label for="ds-j-pass" class="block text-sm font-medium text-foreground mb-1.5">Password</label>
                         <input id="ds-j-pass" type="password" name="password"
                                placeholder="••••••"
                                class="w-full rounded-lg border border-input bg-background px-3.5 py-2.5 text-sm text-foreground
-                          placeholder:text-placeholder focus:outline-none focus:ring-2 focus:ring-ring/40
-                          focus:border-primary hover:border-input-hover transition-colors"/>
+                                      placeholder:text-placeholder focus:outline-none focus:ring-2 focus:ring-ring/40
+                                      focus:border-primary hover:border-input-hover transition-colors"/>
                     </div>
                 </div>
-                <div class="grid grid-cols-2 gap-4 w-64">
-                    <div>
-                        <label for="ds-jdbc-port" class="block text-sm font-medium text-foreground mb-1.5">Port</label>
-                        <input id="ds-jdbc-port" type="number" name="port" value="5432" min="1" max="65535"
+
+                <!-- Pool Size -->
+                <div class="w-40">
+                    <label for="ds-pool" class="block text-sm font-medium text-foreground mb-1.5">Pool Size</label>
+                    <input id="ds-pool" type="number" name="poolSize" value="8" min="1" max="100"
+                           class="w-full rounded-lg border border-input bg-background px-3.5 py-2.5 text-sm text-foreground
+                                  focus:outline-none focus:ring-2 focus:ring-ring/40 focus:border-primary
+                                  hover:border-input-hover transition-colors"/>
+                </div>
+
+                <!-- JDBC URL (hidden input that gets composed; collapsible advanced view) -->
+                <input id="ds-url" type="hidden" name="url"/>
+
+                <div>
+                    <button type="button" id="toggle-url"
+                            class="inline-flex items-center gap-1.5 text-xs font-medium text-muted hover:text-foreground transition-colors">
+                        <svg id="toggle-url-chevron" class="h-3.5 w-3.5 transition-transform" fill="none"
+                             viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5"/>
+                        </svg>
+                        JDBC URL
+                    </button>
+                    <div id="url-advanced" class="hidden mt-2">
+                        <input id="ds-url-display" type="text"
+                               placeholder="jdbc:postgresql://localhost:5432/mydb"
                                class="w-full rounded-lg border border-input bg-background px-3.5 py-2.5 text-sm text-foreground
-                  focus:outline-none focus:ring-2 focus:ring-ring/40 focus:border-primary
-                  hover:border-input-hover transition-colors"/>
-                    </div>
-                    <div>
-                        <label for="ds-pool" class="block text-sm font-medium text-foreground mb-1.5">Pool Size</label>
-                        <input id="ds-pool" type="number" name="poolSize" value="8" min="1" max="100"
-                               class="w-full rounded-lg border border-input bg-background px-3.5 py-2.5 text-sm text-foreground
-                  focus:outline-none focus:ring-2 focus:ring-ring/40 focus:border-primary
-                  hover:border-input-hover transition-colors"/>
+                                      font-mono placeholder:text-placeholder focus:outline-none focus:ring-2
+                                      focus:ring-ring/40 focus:border-primary hover:border-input-hover transition-colors"/>
+                        <p class="text-xs text-muted mt-1">
+                            Edit directly or use the fields above. Changes sync both ways.
+                        </p>
                     </div>
                 </div>
             </div>
 
-            <!-- Cassandra fields -->
+            <!-- ════════════════════════════════════════════════
+                 Cassandra Fields
+                 ════════════════════════════════════════════════ -->
             <div id="cassandra-fields" class="hidden space-y-4">
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
+
+                <!-- Contact Points + Port -->
+                <div class="grid grid-cols-1 sm:grid-cols-12 gap-4">
+                    <div class="sm:col-span-8">
                         <label for="ds-contact" class="block text-sm font-medium text-foreground mb-1.5">Contact Points</label>
                         <input id="ds-contact" type="text" name="contactPoints"
                                placeholder="node1,node2,node3"
                                class="w-full rounded-lg border border-input bg-background px-3.5 py-2.5 text-sm text-foreground
-                          placeholder:text-placeholder focus:outline-none focus:ring-2 focus:ring-ring/40
-                          focus:border-primary hover:border-input-hover transition-colors"/>
+                                      placeholder:text-placeholder focus:outline-none focus:ring-2 focus:ring-ring/40
+                                      focus:border-primary hover:border-input-hover transition-colors"/>
                     </div>
-                    <div class="w-32">
-                        <label for="ds-port" class="block text-sm font-medium text-foreground mb-1.5">Port</label>
-                        <input id="ds-port" type="number" name="port" value="9042"
+                    <div class="sm:col-span-4 sm:max-w-32">
+                        <label for="ds-cass-port" class="block text-sm font-medium text-foreground mb-1.5">Port</label>
+                        <input id="ds-cass-port" type="number" name="port" value="9042" min="1" max="65535"
                                class="w-full rounded-lg border border-input bg-background px-3.5 py-2.5 text-sm text-foreground
-                          focus:outline-none focus:ring-2 focus:ring-ring/40 focus:border-primary
-                          hover:border-input-hover transition-colors"/>
+                                      focus:outline-none focus:ring-2 focus:ring-ring/40 focus:border-primary
+                                      hover:border-input-hover transition-colors"/>
                     </div>
                 </div>
+
+                <!-- Datacenter + Keyspace -->
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                         <label for="ds-dc" class="block text-sm font-medium text-foreground mb-1.5">Datacenter</label>
                         <input id="ds-dc" type="text" name="datacenter"
                                placeholder="datacenter1"
                                class="w-full rounded-lg border border-input bg-background px-3.5 py-2.5 text-sm text-foreground
-                          placeholder:text-placeholder focus:outline-none focus:ring-2 focus:ring-ring/40
-                          focus:border-primary hover:border-input-hover transition-colors"/>
+                                      placeholder:text-placeholder focus:outline-none focus:ring-2 focus:ring-ring/40
+                                      focus:border-primary hover:border-input-hover transition-colors"/>
                     </div>
                     <div>
                         <label for="ds-ks" class="block text-sm font-medium text-foreground mb-1.5">Keyspace</label>
                         <input id="ds-ks" type="text" name="keyspace"
                                placeholder="my_keyspace"
                                class="w-full rounded-lg border border-input bg-background px-3.5 py-2.5 text-sm text-foreground
-                          placeholder:text-placeholder focus:outline-none focus:ring-2 focus:ring-ring/40
-                          focus:border-primary hover:border-input-hover transition-colors"/>
+                                      placeholder:text-placeholder focus:outline-none focus:ring-2 focus:ring-ring/40
+                                      focus:border-primary hover:border-input-hover transition-colors"/>
                     </div>
                 </div>
+
+                <!-- Username + Password -->
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                         <label for="ds-c-user" class="block text-sm font-medium text-foreground mb-1.5">Username</label>
                         <input id="ds-c-user" type="text" name="username"
                                placeholder="cassandra"
                                class="w-full rounded-lg border border-input bg-background px-3.5 py-2.5 text-sm text-foreground
-                          placeholder:text-placeholder focus:outline-none focus:ring-2 focus:ring-ring/40
-                          focus:border-primary hover:border-input-hover transition-colors"/>
+                                      placeholder:text-placeholder focus:outline-none focus:ring-2 focus:ring-ring/40
+                                      focus:border-primary hover:border-input-hover transition-colors"/>
                     </div>
                     <div>
                         <label for="ds-c-pass" class="block text-sm font-medium text-foreground mb-1.5">Password</label>
                         <input id="ds-c-pass" type="password" name="password"
                                placeholder="••••••"
                                class="w-full rounded-lg border border-input bg-background px-3.5 py-2.5 text-sm text-foreground
-                          placeholder:text-placeholder focus:outline-none focus:ring-2 focus:ring-ring/40
-                          focus:border-primary hover:border-input-hover transition-colors"/>
+                                      placeholder:text-placeholder focus:outline-none focus:ring-2 focus:ring-ring/40
+                                      focus:border-primary hover:border-input-hover transition-colors"/>
                     </div>
                 </div>
             </div>
 
-            <!-- Elasticsearch fields -->
+            <!-- ════════════════════════════════════════════════
+                 Elasticsearch Fields
+                 ════════════════════════════════════════════════ -->
             <div id="elastic-fields" class="hidden space-y-4">
                 <div>
                     <label for="ds-hosts" class="block text-sm font-medium text-foreground mb-1.5">Hosts</label>
                     <input id="ds-hosts" type="text" name="hosts"
                            placeholder="https://localhost:9200"
                            class="w-full rounded-lg border border-input bg-background px-3.5 py-2.5 text-sm text-foreground
-                        placeholder:text-placeholder focus:outline-none focus:ring-2 focus:ring-ring/40
-                        focus:border-primary hover:border-input-hover transition-colors"/>
+                                  placeholder:text-placeholder focus:outline-none focus:ring-2 focus:ring-ring/40
+                                  focus:border-primary hover:border-input-hover transition-colors"/>
+                    <p class="text-xs text-muted mt-1">Comma-separated for clusters, e.g. https://node1:9200,https://node2:9200</p>
                 </div>
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
@@ -175,16 +228,16 @@
                         <input id="ds-e-user" type="text" name="username"
                                placeholder="elastic"
                                class="w-full rounded-lg border border-input bg-background px-3.5 py-2.5 text-sm text-foreground
-                          placeholder:text-placeholder focus:outline-none focus:ring-2 focus:ring-ring/40
-                          focus:border-primary hover:border-input-hover transition-colors"/>
+                                      placeholder:text-placeholder focus:outline-none focus:ring-2 focus:ring-ring/40
+                                      focus:border-primary hover:border-input-hover transition-colors"/>
                     </div>
                     <div>
                         <label for="ds-e-pass" class="block text-sm font-medium text-foreground mb-1.5">Password</label>
                         <input id="ds-e-pass" type="password" name="password"
                                placeholder="••••••"
                                class="w-full rounded-lg border border-input bg-background px-3.5 py-2.5 text-sm text-foreground
-                          placeholder:text-placeholder focus:outline-none focus:ring-2 focus:ring-ring/40
-                          focus:border-primary hover:border-input-hover transition-colors"/>
+                                      placeholder:text-placeholder focus:outline-none focus:ring-2 focus:ring-ring/40
+                                      focus:border-primary hover:border-input-hover transition-colors"/>
                     </div>
                 </div>
                 <div class="flex items-center gap-2">
@@ -198,8 +251,8 @@
             <div class="pt-2">
                 <button type="submit"
                         class="rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground
-                       hover:bg-primary-hover active:scale-[0.98]
-                       focus:outline-none focus:ring-2 focus:ring-ring/40 transition-all">
+                               hover:bg-primary-hover active:scale-[0.98]
+                               focus:outline-none focus:ring-2 focus:ring-ring/40 transition-all">
                     Test &amp; Create
                 </button>
             </div>
@@ -207,7 +260,7 @@
         </form>
     </div>
 
-    <!-- Data Store List -->
+    <!-- ── Data Store List ───────────────────────────────── -->
     <div class="bg-surface border border-border rounded-xl overflow-hidden">
         <div class="px-6 py-4 border-b border-border">
             <h2 class="text-base font-semibold text-foreground">Data Stores</h2>
@@ -248,7 +301,7 @@
                           th:attr="data-name=${ds}">
                         <button type="submit"
                                 class="rounded-lg px-3 py-1.5 text-xs font-medium
-                             text-danger hover:bg-danger/10 transition-colors">
+                                       text-danger hover:bg-danger/10 transition-colors">
                             Delete
                         </button>
                     </form>
@@ -258,38 +311,286 @@
         </table>
     </div>
 
-    <!-- Type toggle script -->
+    <div class="mt-8">
+        <div class="flex items-center justify-between mb-4">
+            <div class="flex items-center gap-3">
+                <h2 class="text-base font-semibold text-foreground">Live Feeds</h2>
+                <span class="inline-flex items-center rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-medium text-primary"
+                      th:text="${#lists.size(feeds)} + ' configured'">0 configured</span>
+                <span th:if="${activeFeedCount > 0}"
+                      class="inline-flex items-center rounded-full bg-success/10 px-2.5 py-0.5 text-xs font-medium text-success"
+                      th:text="${activeFeedCount} + ' active'">0 active</span>
+            </div>
+            <a th:href="@{/workspaces/{ws}/feeds/new(ws=${workspace.name()})}"
+               class="inline-flex items-center gap-2 rounded-lg bg-primary text-primary-foreground px-3 py-2 text-xs
+                      font-medium hover:bg-primary-hover transition-all">
+                <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/>
+                </svg>
+                New Feed
+            </a>
+        </div>
+
+        <!-- Empty state -->
+        <div th:if="${#lists.isEmpty(feeds)}"
+             class="bg-surface border border-border border-dashed rounded-xl p-8 text-center">
+            <svg class="mx-auto h-8 w-8 text-muted mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                      d="M9.348 14.651a3.75 3.75 0 010-5.303m5.304 0a3.75 3.75 0 010 5.303m-7.425 2.122a6.75 6.75 0 010-9.546m9.546 0a6.75 6.75 0 010 9.546M5.106 18.894c-3.808-3.808-3.808-9.98 0-13.789m13.788 0c3.808 3.808 3.808 9.981 0 13.79"/>
+            </svg>
+            <p class="text-sm text-muted">No live feeds configured for this workspace.</p>
+            <p class="text-xs text-muted mt-1">
+                Connect live data sources via REST, TCP, WebSocket, Kafka, or AMQP.
+            </p>
+            <a th:href="@{/workspaces/{ws}/feeds/new(ws=${workspace.name()})}"
+               class="inline-flex items-center gap-1.5 mt-4 text-xs font-medium text-primary hover:text-primary-hover transition-colors">
+                <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/>
+                </svg>
+                Create your first feed
+            </a>
+        </div>
+
+        <!-- Feed list -->
+        <div th:if="${!#lists.isEmpty(feeds)}" class="space-y-3">
+
+            <!-- "View All" link -->
+            <div class="flex justify-end mb-1">
+                <a th:href="@{/workspaces/{ws}/feeds(ws=${workspace.name()})}"
+                   class="text-xs font-medium text-primary hover:text-primary-hover transition-colors">
+                    View all feeds →
+                </a>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
+                <a th:each="feed, stat : ${feeds}"
+                   th:href="@{/workspaces/{ws}/feeds/{name}(ws=${workspace.name()}, name=${feed.name()})}"
+                   class="flex items-center gap-4 bg-surface border border-border rounded-xl px-4 py-3.5
+                          hover:border-primary/40 hover:shadow-sm transition-all group">
+
+                    <!-- Status dot -->
+                    <span th:with="status=${feedStatuses[stat.index]}"
+                          class="h-2.5 w-2.5 rounded-full shrink-0"
+                          th:classappend="${status.state().name() == 'RUNNING'} ? 'bg-success animate-pulse' :
+                                          (${status.state().name() == 'ERROR' || status.state().name() == 'RECONNECTING'} ? 'bg-warning' : 'bg-muted/40')"></span>
+
+                    <!-- Name + type -->
+                    <div class="flex-1 min-w-0">
+                        <div class="flex items-center gap-2">
+                            <span class="text-sm font-semibold text-foreground group-hover:text-primary transition-colors
+                                         font-mono truncate" th:text="${feed.name()}">feed</span>
+                            <span class="inline-flex items-center rounded-md px-1.5 py-0.5 text-[0.55rem] font-bold uppercase
+                                         tracking-wide shrink-0"
+                                  th:classappend="${feed.type().name() == 'KAFKA'} ? 'bg-accent/10 text-accent' :
+                                                  (${feed.type().name() == 'WEBSOCKET'} ? 'bg-primary/10 text-primary' :
+                                                  (${feed.type().name() == 'TCP'} ? 'bg-warning/10 text-warning' :
+                                                  (${feed.type().name() == 'AMQP'} ? 'bg-success/10 text-success' : 'bg-muted/10 text-muted')))"
+                                  th:text="${feed.type().name()}">TYPE</span>
+                        </div>
+                        <!-- Connection summary -->
+                        <p class="text-[0.65rem] text-muted font-mono truncate mt-0.5"
+                           th:text="${feed.type().name() == 'REST_POLL' ? feed.connection().url() :
+                                     (feed.type().name() == 'TCP' ? feed.connection().host() + ':' + feed.connection().port() :
+                                     (feed.type().name() == 'WEBSOCKET' ? feed.connection().wsUrl() :
+                                     (feed.type().name() == 'KAFKA' ? feed.connection().topic() :
+                                     (feed.type().name() == 'AMQP' ? feed.connection().queue() : '—'))))}">endpoint</p>
+                    </div>
+
+                    <!-- Stats -->
+                    <div th:with="status=${feedStatuses[stat.index]}" class="text-right shrink-0">
+                        <p class="text-xs font-mono text-foreground" th:text="${status.featuresIngested()}">0</p>
+                        <p class="text-[0.6rem] text-muted">ingested</p>
+                    </div>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── Form Logic ────────────────────────────────────── -->
     <script>
         (function () {
-            var typeSelect = document.getElementById('ds-type');
-            var jdbc       = document.getElementById('jdbc-fields');
-            var cassandra  = document.getElementById('cassandra-fields');
-            var elastic    = document.getElementById('elastic-fields');
-            var jdbcTypes  = ['POSTGIS', 'MYSQL', 'ORACLE'];
+            /* ── Element refs ────────────────────────────── */
+            var typeSelect  = document.getElementById('ds-type');
+            var jdbc        = document.getElementById('jdbc-fields');
+            var cassandra   = document.getElementById('cassandra-fields');
+            var elastic     = document.getElementById('elastic-fields');
+            var jdbcTypes   = ['POSTGIS', 'MYSQL', 'ORACLE'];
 
-            function toggle() {
+            // JDBC individual fields
+            var hostInput   = document.getElementById('ds-host');
+            var portInput   = document.getElementById('ds-jdbc-port');
+            var dbInput     = document.getElementById('ds-database');
+            var dbLabel     = document.getElementById('db-label');
+            var urlHidden   = document.getElementById('ds-url');
+            var urlDisplay  = document.getElementById('ds-url-display');
+
+            // URL toggle
+            var toggleBtn   = document.getElementById('toggle-url');
+            var toggleChev  = document.getElementById('toggle-url-chevron');
+            var urlAdvanced = document.getElementById('url-advanced');
+
+            /* ── Type-specific defaults ──────────────────── */
+            var typeDefaults = {
+                POSTGIS: { prefix: 'jdbc:postgresql://', port: 5432, dbLabel: 'Database',      hostPh: 'localhost', dbPh: 'mydb',  userPh: 'postgres' },
+                MYSQL:   { prefix: 'jdbc:mysql://',      port: 3306, dbLabel: 'Database',      hostPh: 'localhost', dbPh: 'mydb',  userPh: 'root'     },
+                ORACLE:  { prefix: 'jdbc:oracle:thin:@//', port: 1521, dbLabel: 'Service Name', hostPh: 'dbhost',    dbPh: 'ORCL',  userPh: 'system'   }
+            };
+
+            /* ── Prefix → type reverse map for URL parsing ─ */
+            var prefixToType = {};
+            for (var k in typeDefaults) prefixToType[typeDefaults[k].prefix] = k;
+            // Sort by length desc so longer prefixes match first
+            var sortedPrefixes = Object.keys(prefixToType).sort(function (a, b) { return b.length - a.length; });
+
+            /* ── Section toggle ──────────────────────────── */
+            function toggleSections() {
                 var v = typeSelect.value;
-                jdbc.classList.toggle('hidden', !jdbcTypes.includes(v));
+                var isJdbc = jdbcTypes.indexOf(v) >= 0;
+                jdbc.classList.toggle('hidden', !isJdbc);
                 cassandra.classList.toggle('hidden', v !== 'CASSANDRA');
                 elastic.classList.toggle('hidden', v !== 'ELASTICSEARCH');
 
-                // Set sensible default port for JDBC types
-                var jdbcPort = document.getElementById('ds-jdbc-port');
-                if (jdbcPort) {
-                    var defaults = { 'POSTGIS': 5432, 'MYSQL': 3306, 'ORACLE': 1521 };
-                    if (defaults[v]) jdbcPort.value = defaults[v];
-                }
-
+                // Disable inputs in hidden sections so they don't submit
                 [jdbc, cassandra, elastic].forEach(function (section) {
                     var hidden = section.classList.contains('hidden');
                     section.querySelectorAll('input, select').forEach(function (el) {
                         el.disabled = hidden;
                     });
                 });
+
+                // Update JDBC labels, placeholders, defaults when switching type
+                if (isJdbc && typeDefaults[v]) {
+                    var def = typeDefaults[v];
+                    // Only reset port if it still matches a known default (user hasn't changed it)
+                    var currentPort = parseInt(portInput.value, 10);
+                    var isDefaultPort = false;
+                    for (var t in typeDefaults) {
+                        if (typeDefaults[t].port === currentPort) { isDefaultPort = true; break; }
+                    }
+                    if (isDefaultPort || !portInput.value) portInput.value = def.port;
+
+                    dbLabel.textContent = def.dbLabel;
+                    hostInput.placeholder = def.hostPh;
+                    dbInput.placeholder = def.dbPh;
+                    document.getElementById('ds-j-user').placeholder = def.userPh;
+                    urlDisplay.placeholder = def.prefix + def.hostPh + ':' + def.port + '/' + def.dbPh;
+                    composeUrl();
+                }
             }
 
-            typeSelect.addEventListener('change', toggle);
-            toggle();
+            /* ── Compose URL from fields → hidden + display ─ */
+            function composeUrl() {
+                var v   = typeSelect.value;
+                var def = typeDefaults[v];
+                if (!def) return;
+
+                var host = hostInput.value.trim() || '';
+                var port = portInput.value || def.port;
+                var db   = dbInput.value.trim() || '';
+
+                // Only compose if at least host is provided
+                if (!host) {
+                    urlHidden.value  = '';
+                    urlDisplay.value = '';
+                    return;
+                }
+
+                var url = def.prefix + host + ':' + port;
+                if (db) url += '/' + db;
+
+                urlHidden.value  = url;
+                // Only update display if it's not focused (avoid fight with user typing)
+                if (document.activeElement !== urlDisplay) {
+                    urlDisplay.value = url;
+                }
+            }
+
+            /* ── Parse URL → extract host/port/db into fields ── */
+            function parseUrl() {
+                var raw = urlDisplay.value.trim();
+                urlHidden.value = raw;
+                if (!raw) return;
+
+                // Find matching prefix
+                var matchedPrefix = null;
+                for (var i = 0; i < sortedPrefixes.length; i++) {
+                    if (raw.indexOf(sortedPrefixes[i]) === 0) {
+                        matchedPrefix = sortedPrefixes[i];
+                        break;
+                    }
+                }
+
+                // If prefix found, optionally switch type selector to match
+                if (matchedPrefix) {
+                    var detectedType = prefixToType[matchedPrefix];
+                    if (detectedType && typeSelect.value !== detectedType) {
+                        typeSelect.value = detectedType;
+                        toggleSections();
+                    }
+                }
+
+                var v   = typeSelect.value;
+                var def = typeDefaults[v];
+                if (!def) return;
+
+                // Strip prefix to get "host:port/db?params"
+                var body = matchedPrefix ? raw.substring(matchedPrefix.length) : raw;
+
+                // Split on first "/" for db
+                var hostPart = body;
+                var dbPart   = '';
+                var slashIdx = body.indexOf('/');
+                if (slashIdx >= 0) {
+                    hostPart = body.substring(0, slashIdx);
+                    dbPart   = body.substring(slashIdx + 1).split('?')[0]; // drop query params
+                }
+
+                // Split host:port
+                var colonIdx = hostPart.lastIndexOf(':');
+                if (colonIdx >= 0) {
+                    var maybePort = hostPart.substring(colonIdx + 1);
+                    if (/^\d{1,5}$/.test(maybePort)) {
+                        hostInput.value = hostPart.substring(0, colonIdx);
+                        portInput.value = maybePort;
+                    } else {
+                        hostInput.value = hostPart;
+                    }
+                } else {
+                    hostInput.value = hostPart;
+                }
+
+                dbInput.value = dbPart;
+            }
+
+            /* ── Wire events ─────────────────────────────── */
+            typeSelect.addEventListener('change', toggleSections);
+
+            // Fields → URL (compose on any field change)
+            hostInput.addEventListener('input', composeUrl);
+            portInput.addEventListener('input', composeUrl);
+            dbInput.addEventListener('input',   composeUrl);
+
+            // URL display → fields (parse on input and paste)
+            urlDisplay.addEventListener('input', parseUrl);
+            urlDisplay.addEventListener('paste', function () {
+                setTimeout(parseUrl, 0);
+            });
+
+            // Toggle advanced URL row
+            toggleBtn.addEventListener('click', function () {
+                var hidden = urlAdvanced.classList.toggle('hidden');
+                toggleChev.style.transform = hidden ? '' : 'rotate(90deg)';
+            });
+
+            // Ensure URL is composed before submit
+            document.getElementById('create-datastore-form').addEventListener('submit', function () {
+                if (jdbcTypes.indexOf(typeSelect.value) >= 0) {
+                    composeUrl();
+                }
+            });
+
+            // Init
+            toggleSections();
         })();
     </script>
 

@@ -129,8 +129,8 @@
                 <input type="number" name="pollIntervalSeconds" id="pollInterval"
                        min="30" max="86400" step="30"
                        th:value="${layer.syncConfig() != null ? layer.syncConfig().pollIntervalSeconds() : 300}"
-                       class="w-full sm:w-48 rounded-lg border border-border bg-background px-3 py-2
-                              text-sm text-foreground focus:border-primary focus:ring-1 focus:ring-primary">
+                       class="w-full sm:w-48 rounded-lg border border-input bg-background px-3 py-2
+                              text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring/40 focus:border-primary hover:border-input-hover transition-colors">
                 <p class="text-xs text-muted mt-1">Minimum 30s. Common values: 60 (1 min), 300 (5 min), 3600 (1 hr)</p>
             </div>
 
@@ -142,9 +142,9 @@
                 <input type="text" name="orderByColumn" id="orderByColumn"
                        placeholder="e.g. updated_at, id, created_at"
                        th:value="${layer.syncConfig() != null ? layer.syncConfig().orderByColumn() : ''}"
-                       class="w-full sm:w-72 rounded-lg border border-border bg-background px-3 py-2
+                       class="w-full sm:w-72 rounded-lg border border-input bg-background px-3 py-2
                               text-sm text-foreground placeholder:text-muted
-                              focus:border-primary focus:ring-1 focus:ring-primary">
+                              focus:outline-none focus:ring-2 focus:ring-ring/40 focus:border-primary hover:border-input-hover transition-colors">
                 <p class="text-xs text-muted mt-1">
                     A monotonically increasing column (timestamp or auto-increment) enables
                     <strong>incremental sync</strong> — only new rows are read each poll.
@@ -154,8 +154,9 @@
 
             <div class="pt-2">
                 <button type="submit"
-                        class="rounded-lg bg-foreground px-4 py-2.5 text-sm font-medium text-background
-                               hover:bg-foreground/90 transition-all">
+                        class="rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground
+                               hover:bg-primary-hover active:scale-[0.98]
+                               focus:outline-none focus:ring-2 focus:ring-ring/40 transition-all">
                     Save Configuration
                 </button>
             </div>

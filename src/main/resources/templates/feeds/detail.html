@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<th:block th:fragment="content">
+
+    <nav class="mb-6 text-sm text-muted">
+        <a th:href="@{/workspaces}" class="hover:text-foreground transition-colors">Workspaces</a>
+        <span class="mx-1.5">/</span>
+        <a th:href="@{/workspaces/{ws}(ws=${workspace})}" class="hover:text-foreground transition-colors"
+           th:text="${workspace}">ws</a>
+        <span class="mx-1.5">/</span>
+        <a th:href="@{/workspaces/{ws}/feeds(ws=${workspace})}" class="hover:text-foreground transition-colors">Feeds</a>
+        <span class="mx-1.5">/</span>
+        <span class="text-foreground font-medium font-mono" th:text="${feed.name()}">feed</span>
+    </nav>
+
+    <!-- Flash -->
+    <div th:if="${success}" class="mb-6 rounded-lg bg-success/10 border border-success/20 px-4 py-3 text-sm text-success" th:text="${success}"></div>
+    <div th:if="${error}" class="mb-6 rounded-lg bg-danger/10 border border-danger/20 px-4 py-3 text-sm text-danger" th:text="${error}"></div>
+
+    <!-- Header + Controls -->
+    <div class="flex items-start justify-between gap-4 mb-6">
+        <div class="flex items-center gap-3">
+            <span class="h-3 w-3 rounded-full shrink-0"
+                  th:classappend="${status.state().name() == 'RUNNING'} ? 'bg-success animate-pulse' :
+                                  (${status.state().name() == 'ERROR' || status.state().name() == 'RECONNECTING'} ? 'bg-warning animate-pulse' : 'bg-muted/40')"></span>
+            <div>
+                <h2 class="text-lg font-semibold text-foreground font-mono" th:text="${feed.name()}">feed</h2>
+                <p class="text-xs text-muted">
+                    <span th:text="${feed.type().name()}">TYPE</span>
+                    · <span th:text="${status.state().name()}">STOPPED</span>
+                    <span th:if="${status.startedAt() != null}">
+                        · started <span th:text="${status.startedAt()}">—</span>
+                    </span>
+                </p>
+            </div>
+        </div>
+        <div class="flex items-center gap-2">
+            <form th:if="${status.state().name() == 'STOPPED' || status.state().name() == 'ERROR'}"
+                  th:action="@{/workspaces/{ws}/feeds/{name}/start(ws=${workspace}, name=${feed.name()})}" method="post">
+                <button type="submit" class="rounded-lg bg-primary text-primary-foreground px-4 py-2 text-sm font-medium hover:bg-primary-hover transition-colors">
+                    Start
+                </button>
+            </form>
+            <form th:if="${status.state().name() == 'RUNNING' || status.state().name() == 'RECONNECTING'}"
+                  th:action="@{/workspaces/{ws}/feeds/{name}/stop(ws=${workspace}, name=${feed.name()})}" method="post">
+                <button type="submit" class="rounded-lg border border-danger/30 text-danger px-4 py-2 text-sm font-medium hover:bg-danger/10 transition-colors">
+                    Stop
+                </button>
+            </form>
+            <form th:action="@{/workspaces/{ws}/feeds/{name}/test(ws=${workspace}, name=${feed.name()})}" method="post">
+                <button type="submit" class="rounded-lg border border-border bg-background text-foreground px-4 py-2 text-sm font-medium hover:bg-background/60 transition-colors">
+                    Test
+                </button>
+            </form>
+            <form th:action="@{/workspaces/{ws}/feeds/{name}/delete(ws=${workspace}, name=${feed.name()})}" method="post"
+                  onsubmit="return confirm('Delete this feed?');">
+                <button type="submit" class="rounded-lg border border-danger/30 text-danger px-3 py-2 text-sm font-medium hover:bg-danger/10 transition-colors">
+                    <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0"/>
+                    </svg>
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 xl:grid-cols-12 gap-6">
+
+        <div class="xl:col-span-8 space-y-6">
+
+            <!-- Runtime stats -->
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                <div class="bg-surface border border-border rounded-xl p-4">
+                    <p class="text-xs font-medium text-muted uppercase tracking-wide">Messages</p>
+                    <p class="mt-1 text-2xl font-bold text-foreground" th:text="${status.messagesReceived()}">0</p>
+                </div>
+                <div class="bg-surface border border-border rounded-xl p-4">
+                    <p class="text-xs font-medium text-muted uppercase tracking-wide">Ingested</p>
+                    <p class="mt-1 text-2xl font-bold text-foreground" th:text="${status.featuresIngested()}">0</p>
+                </div>
+                <div class="bg-surface border border-border rounded-xl p-4">
+                    <p class="text-xs font-medium text-muted uppercase tracking-wide">Errors</p>
+                    <p class="mt-1 text-2xl font-bold" th:classappend="${status.errors() > 0} ? 'text-danger' : 'text-foreground'"
+                       th:text="${status.errors()}">0</p>
+                </div>
+                <div class="bg-surface border border-border rounded-xl p-4">
+                    <p class="text-xs font-medium text-muted uppercase tracking-wide">Last Message</p>
+                    <p class="mt-1 text-sm font-mono text-foreground"
+                       th:text="${status.lastMessageAt() != null ? status.lastMessageAt() : '—'}">—</p>
+                </div>
+            </div>
+
+            <!-- Error -->
+            <div th:if="${status.lastError() != null}"
+                 class="rounded-lg bg-danger/10 border border-danger/20 px-4 py-3 text-sm text-danger">
+                Last error: <span th:text="${status.lastError()}">—</span>
+            </div>
+
+            <!-- Connection Config -->
+            <div class="bg-surface border border-border rounded-xl overflow-hidden">
+                <div class="px-5 py-3 border-b border-border">
+                    <h3 class="text-sm font-semibold text-foreground">Connection</h3>
+                </div>
+                <div class="p-4 text-sm space-y-2">
+                    <div class="flex justify-between" th:if="${feed.connection().url() != null}">
+                        <span class="text-muted">URL</span>
+                        <span class="font-mono text-xs text-foreground" th:text="${feed.connection().url()}">—</span>
+                    </div>
+                    <div class="flex justify-between" th:if="${feed.connection().host() != null}">
+                        <span class="text-muted">Host:Port</span>
+                        <span class="font-mono text-xs text-foreground" th:text="${feed.connection().host() + ':' + feed.connection().port()}">—</span>
+                    </div>
+                    <div class="flex justify-between" th:if="${feed.connection().wsUrl() != null}">
+                        <span class="text-muted">WebSocket URL</span>
+                        <span class="font-mono text-xs text-foreground" th:text="${feed.connection().wsUrl()}">—</span>
+                    </div>
+                    <div class="flex justify-between" th:if="${feed.connection().bootstrapServers() != null}">
+                        <span class="text-muted">Kafka Servers</span>
+                        <span class="font-mono text-xs text-foreground" th:text="${feed.connection().bootstrapServers()}">—</span>
+                    </div>
+                    <div class="flex justify-between" th:if="${feed.connection().topic() != null}">
+                        <span class="text-muted">Topic</span>
+                        <span class="font-mono text-xs text-foreground" th:text="${feed.connection().topic()}">—</span>
+                    </div>
+                    <div class="flex justify-between" th:if="${feed.connection().amqpUri() != null}">
+                        <span class="text-muted">AMQP URI</span>
+                        <span class="font-mono text-xs text-foreground" th:text="${feed.connection().amqpUri()}">—</span>
+                    </div>
+                    <div class="flex justify-between" th:if="${feed.connection().queue() != null}">
+                        <span class="text-muted">Queue</span>
+                        <span class="font-mono text-xs text-foreground" th:text="${feed.connection().queue()}">—</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Config JSON -->
+        <div class="xl:col-span-4">
+            <div class="bg-surface border border-border rounded-xl overflow-hidden sticky top-20">
+                <div class="px-5 py-3 border-b border-border">
+                    <h3 class="text-sm font-semibold text-foreground">Raw Config</h3>
+                </div>
+                <pre class="p-4 text-xs font-mono text-foreground bg-background/50 overflow-x-auto max-h-96 whitespace-pre-wrap leading-relaxed"
+                     th:text="${@objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(feed)}">{ }</pre>
+            </div>
+        </div>
+    </div>
+
+</th:block>
+
+</body>
+</html>

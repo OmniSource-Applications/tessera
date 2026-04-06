@@ -1,0 +1,17 @@
+{
+  "name": "h3.k_ring_features",
+  "description": "All features within k-ring of an H3 cell",
+  "category": "H3",
+  "querySql": "SELECT DISTINCT f.id, f.external_id, ST_AsGeoJSON(f.geometry)::jsonb AS geometry, f.attributes FROM tessera.h3_cell_index h JOIN tessera.geo_features f ON f.id = h.feature_id AND f.ingested_at = h.feature_ingest WHERE h.resolution = :resolution AND h.h3_index = ANY(h3_grid_disk(:h3CellAddress::h3index, :k))",
+  "paramSchema": {
+    "type": "object",
+    "properties": {
+      "h3CellAddress": { "type": "string" },
+      "resolution": { "type": "integer" },
+      "k": { "type": "integer", "minimum": 1 }
+    }
+  },
+  "timeoutMs": 30000,
+  "streaming": false,
+  "tags": ["h3", "kring"]
+}

@@ -6,9 +6,17 @@
   888 . 888    .o o.  )88b o.  )88b 888    .o  888     d8(  888
   "888" `Y8bod8P' 8""888P' 8""888P' `Y8bod8P' d888b    `Y888""8o
 
-::          tessera         ::      (${application.version})
-::          H3              ::      (${tessera.tags.h3.version})
-::          JTS             ::      (${tessera.tags.jts.version})
-::          Spring Boot     ::      (${spring-boot.version})
+    TESSERA CORE
+::    tessera         ::      (${application.version})
+::    H3              ::      (${tessera.tags.h3.version})
+::    JTS             ::      (${tessera.tags.jts.version})
+::    Spring Boot     ::      (${spring-boot.version})
+
+    DATASOURCE CONNECTORS
+::    Cassandra       ::      (${tessera.tags.cassandra.version})
+::    MySQL           ::      (${tessera.tags.mysql.version})
+::    PostgreSQL      ::      (${tessera.tags.postgresql.version})
+::    OracleDB        ::      (${tessera.tags.oracle.version})
+::    Elastic Search  ::      (${tessera.tags.elasticsearch.version})
 
 

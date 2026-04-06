@@ -12,12 +12,15 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 import org.springframework.security.oauth2.client.oidc.web.logout.OidcClientInitiatedLogoutSuccessHandler;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.authentication.logout.LogoutSuccessHandler;
+
+import live.omnisource.tessera.security.apikey.ApiKeyAuthenticationFilter;
 
 /**
  * OIDC-only security configuration.
  *
- * When the "oidc" profile is active we rely on oauth2Login + JWT/OIDC authentication.
+ * <p>When the "oidc" profile is active we rely on oauth2Login + JWT/OIDC authentication.
  */
 @Configuration
 @EnableWebSecurity
@@ -25,44 +28,52 @@ import org.springframework.security.web.authentication.logout.LogoutSuccessHandl
 @Profile("oidc")
 public class OidcSecurityConfig {
 
-    @Bean
-    @Order(1)
-    SecurityFilterChain oidcSecurityFilterChain(
-            HttpSecurity http,
-            ClientRegistrationRepository clientRegistrationRepository
-    ) throws Exception {
-        return http
-                .securityMatcher("/**")
-                .csrf(csrf -> csrf.ignoringRequestMatchers("/api/**", "/actuator/**"))
-                .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(
-                                "/webjars/**",
-                                "/login"
-                        ).permitAll()
-                        .requestMatchers("/actuator/health").permitAll()
-                        .requestMatchers("/actuator/**").hasAuthority("TESSERA_OPS_VIEW")
-                        .requestMatchers("/api/**").authenticated()
-                        .anyRequest().authenticated()
-                )
-                .oauth2Login(Customizer.withDefaults())
-                .oauth2Client(Customizer.withDefaults())
-                .logout(logout -> logout
-                        .logoutUrl("/logout")
-                        .logoutSuccessHandler(oidcLogoutSuccessHandler(clientRegistrationRepository))
-                )
-                .build();
-    }
+  private final ApiKeyAuthenticationFilter apiKeyAuthenticationFilter;
 
-    private LogoutSuccessHandler oidcLogoutSuccessHandler(ClientRegistrationRepository clientRegistrationRepository) {
-        OidcClientInitiatedLogoutSuccessHandler handler =
-                new OidcClientInitiatedLogoutSuccessHandler(clientRegistrationRepository);
-        handler.setPostLogoutRedirectUri("{baseUrl}/");
-        return handler;
-    }
+  public OidcSecurityConfig(ApiKeyAuthenticationFilter apiKeyAuthenticationFilter) {
+    this.apiKeyAuthenticationFilter = apiKeyAuthenticationFilter;
+  }
 
-    @Bean
-    public WebSecurityCustomizer oidcWebSecurityCustomizer() {
-        return web -> web.ignoring()
-                .requestMatchers("/images/**", "/css/**", "/js/**");
-    }
+  @Bean
+  @Order(1)
+  SecurityFilterChain oidcSecurityFilterChain(
+      HttpSecurity http, ClientRegistrationRepository clientRegistrationRepository)
+      throws Exception {
+    return http.securityMatcher("/**")
+        .csrf(csrf -> csrf.ignoringRequestMatchers("/api/**", "/actuator/**"))
+        .authorizeHttpRequests(
+            auth ->
+                auth.requestMatchers("/webjars/**", "/login")
+                    .permitAll()
+                    .requestMatchers("/actuator/health")
+                    .permitAll()
+                    .requestMatchers("/actuator/**")
+                    .hasAuthority("TESSERA_OPS_VIEW")
+                    .requestMatchers("/api/**")
+                    .authenticated()
+                    .anyRequest()
+                    .authenticated())
+        .addFilterBefore(apiKeyAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+        .oauth2Login(Customizer.withDefaults())
+        .oauth2Client(Customizer.withDefaults())
+        .logout(
+            logout ->
+                logout
+                    .logoutUrl("/logout")
+                    .logoutSuccessHandler(oidcLogoutSuccessHandler(clientRegistrationRepository)))
+        .build();
+  }
+
+  private LogoutSuccessHandler oidcLogoutSuccessHandler(
+      ClientRegistrationRepository clientRegistrationRepository) {
+    OidcClientInitiatedLogoutSuccessHandler handler =
+        new OidcClientInitiatedLogoutSuccessHandler(clientRegistrationRepository);
+    handler.setPostLogoutRedirectUri("{baseUrl}/");
+    return handler;
+  }
+
+  @Bean
+  public WebSecurityCustomizer oidcWebSecurityCustomizer() {
+    return web -> web.ignoring().requestMatchers("/images/**", "/css/**", "/js/**");
+  }
 }

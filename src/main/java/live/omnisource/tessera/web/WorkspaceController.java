@@ -1,6 +1,10 @@
 package live.omnisource.tessera.web;
 
 import live.omnisource.tessera.datastore.DataStoreService;
+import live.omnisource.tessera.feed.FeedService;
+import live.omnisource.tessera.security.rbac.TesseraRole;
+import live.omnisource.tessera.security.rbac.annotations.RequireGlobalRole;
+import live.omnisource.tessera.security.rbac.annotations.RequireWorkspaceRole;
 import live.omnisource.tessera.workspace.WorkspaceService;
 import live.omnisource.tessera.workspace.dto.WorkspaceDto;
 import org.springframework.stereotype.Controller;
@@ -12,68 +16,78 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 @RequestMapping("/workspaces")
 public class WorkspaceController {
 
-    private final WorkspaceService workspaceService;
-    private final DataStoreService dataStoreService;
+  private final WorkspaceService workspaceService;
+  private final DataStoreService dataStoreService;
+  private final FeedService feedService;
 
-    public WorkspaceController(WorkspaceService workspaceService,
-                               DataStoreService dataStoreService) {
-        this.workspaceService = workspaceService;
-        this.dataStoreService = dataStoreService;
+  public WorkspaceController(WorkspaceService workspaceService,
+                             DataStoreService dataStoreService, FeedService feedService) {
+    this.workspaceService = workspaceService;
+    this.dataStoreService = dataStoreService;
+      this.feedService = feedService;
+  }
+
+  /**
+   * List all workspaces.
+   */
+  @RequireGlobalRole(TesseraRole.TESSERA_OPS_VIEWER)
+  @GetMapping
+  public String list(Model model) {
+    model.addAttribute("title", "Workspaces");
+    model.addAttribute("description", "Manage your project workspaces.");
+    model.addAttribute("view", "workspaces/list");
+    model.addAttribute("workspaces", workspaceService.listWorkspaces());
+    return "layout/page";
+  }
+
+  /**
+   * Create a new workspace.
+   */
+  @RequireGlobalRole(TesseraRole.TESSERA_PLATFORM_ADMIN)
+  @PostMapping
+  public String create(@RequestParam("name") String name, RedirectAttributes redirect) {
+    try {
+      workspaceService.createWorkspace(new WorkspaceDto(name));
+      redirect.addFlashAttribute("success", "Workspace '" + name + "' created.");
+    } catch (Exception e) {
+      redirect.addFlashAttribute("error", e.getMessage());
     }
+    return "redirect:/workspaces";
+  }
 
-    /**
-     * List all workspaces.
-     */
-    @GetMapping
-    public String list(Model model) {
-        model.addAttribute("title", "Workspaces");
-        model.addAttribute("description", "Manage your project workspaces.");
-        model.addAttribute("view", "workspaces/list");
-        model.addAttribute("workspaces", workspaceService.listWorkspaces());
-        return "layout/page";
+  /**
+   * Delete a workspace.
+   */
+  @RequireWorkspaceRole(value = TesseraRole.TESSERA_OWNER, workspaceParam = "name")
+  @PostMapping("/{name}/delete")
+  public String delete(@PathVariable String name, RedirectAttributes redirect) {
+    try {
+      workspaceService.deleteWorkspace(new WorkspaceDto(name));
+      redirect.addFlashAttribute("success", "Workspace '" + name + "' deleted.");
+    } catch (Exception e) {
+      redirect.addFlashAttribute("error", e.getMessage());
     }
+    return "redirect:/workspaces";
+  }
 
-    /**
-     * Create a new workspace.
-     */
-    @PostMapping
-    public String create(@RequestParam("name") String name, RedirectAttributes redirect) {
-        try {
-            workspaceService.createWorkspace(new WorkspaceDto(name));
-            redirect.addFlashAttribute("success", "Workspace '" + name + "' created.");
-        } catch (Exception e) {
-            redirect.addFlashAttribute("error", e.getMessage());
-        }
-        return "redirect:/workspaces";
-    }
+  /**
+   * Workspace detail — shows data stores and create form.
+   */
+  @RequireWorkspaceRole(value = TesseraRole.TESSERA_VIEWER, workspaceParam = "name")
+  @GetMapping("/{name}")
+  public String detail(@PathVariable String name, Model model) {
+    var workspace = workspaceService.getWorkspace(new WorkspaceDto(name));
+    var datastores = dataStoreService.listDataStores(name);
 
-    /**
-     * Delete a workspace.
-     */
-    @PostMapping("/{name}/delete")
-    public String delete(@PathVariable String name, RedirectAttributes redirect) {
-        try {
-            workspaceService.deleteWorkspace(new WorkspaceDto(name));
-            redirect.addFlashAttribute("success", "Workspace '" + name + "' deleted.");
-        } catch (Exception e) {
-            redirect.addFlashAttribute("error", e.getMessage());
-        }
-        return "redirect:/workspaces";
-    }
+    model.addAttribute("title", name);
+    model.addAttribute("description", "Workspace details and data stores.");
+    model.addAttribute("view", "workspaces/detail");
+    model.addAttribute("workspace", workspace);
+    model.addAttribute("datastores", datastores);
+    model.addAttribute("feeds", feedService.listFeeds(name));
+    model.addAttribute("feedStatuses", feedService.allStatuses(name));
+    model.addAttribute("activeFeedCount", feedService.activeFeedCount(name));
 
-    /**
-     * Workspace detail — shows data stores and create form.
-     */
-    @GetMapping("/{name}")
-    public String detail(@PathVariable String name, Model model) {
-        var workspace = workspaceService.getWorkspace(new WorkspaceDto(name));
-        var datastores = dataStoreService.listDataStores(name);
-
-        model.addAttribute("title", name);
-        model.addAttribute("description", "Workspace details and data stores.");
-        model.addAttribute("view", "workspaces/detail");
-        model.addAttribute("workspace", workspace);
-        model.addAttribute("datastores", datastores);
-        return "layout/page";
-    }
+    return "layout/page";
+  }
 }

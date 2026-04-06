@@ -1,0 +1,16 @@
+{
+  "name": "h3.cell_features",
+  "description": "All features within a given H3 cell at a specific resolution",
+  "category": "H3",
+  "querySql": "SELECT f.id, f.external_id, f.source_table, ST_AsGeoJSON(f.geometry)::jsonb AS geometry, f.attributes FROM tessera.h3_cell_index h JOIN tessera.geo_features f ON f.id = h.feature_id AND f.ingested_at = h.feature_ingest WHERE h.resolution = :resolution AND h.h3_index = :h3CellAddress::h3index ORDER BY f.updated_at DESC",
+  "paramSchema": {
+    "type": "object",
+    "properties": {
+      "h3CellAddress": { "type": "string" },
+      "resolution": { "type": "integer", "minimum": 0, "maximum": 15 }
+    }
+  },
+  "timeoutMs": 30000,
+  "streaming": false,
+  "tags": ["h3", "cell"]
+}

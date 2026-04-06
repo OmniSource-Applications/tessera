@@ -1,0 +1,19 @@
+{
+  "name": "h3.density_grid",
+  "description": "Feature density grid across H3 cells intersecting a bbox (from materialized view)",
+  "category": "H3",
+  "querySql": "SELECT h3_index::text, feature_count, ST_AsGeoJSON(hull_geom)::jsonb AS hull, last_updated FROM tessera.mv_h3_density_r7 WHERE hull_geom && ST_MakeEnvelope(:minLon, :minLat, :maxLon, :maxLat, 4326) ORDER BY feature_count DESC LIMIT :limit",
+  "paramSchema": {
+    "type": "object",
+    "properties": {
+      "minLon": { "type": "number" },
+      "minLat": { "type": "number" },
+      "maxLon": { "type": "number" },
+      "maxLat": { "type": "number" },
+      "limit": { "type": "integer", "default": 5000 }
+    }
+  },
+  "timeoutMs": 30000,
+  "streaming": false,
+  "tags": ["h3", "density", "aggregate"]
+}

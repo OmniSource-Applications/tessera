@@ -8,6 +8,8 @@ plugins {
     id 'org.springframework.boot' version '4.0.3'
     id 'io.spring.dependency-management' version '1.1.7'
     id "com.github.node-gradle.node" version "7.1.0"
+    id 'checkstyle'
+    id 'com.diffplug.spotless' version '8.3.0'
 }
 
 group = 'live.omnisource'
@@ -17,11 +19,12 @@ description = 'tessera'
 ext {
     h3Version = findProperty("h3Version") ?: "4.4.0"
     jtsVersion = findProperty("jtsVersion") ?: "1.20.0"
-    cassandraDriverVersion = '4.19.2'
-    elasticsearchVersion = '8.16.0'
+    cassandraDriverVersion = findProperty("cassandraDriverVersion") ?: '4.19.2'
+    elasticsearchVersion = findProperty("elasticsearchVersion") ?: '8.12.2'
     flywayVersion        = '11.1.0'
-    oraDependencyVersion = '23.6.0.24.10'
-    postgisJdbcVersion   = '2023.1.0'
+    oracleDependencyVersion = findProperty("oracleDependencyVersion") ?: '23.6.0.24.10'
+    postgisJdbcVersion   = findProperty("postgisJdbcVersion") ?: '2023.1.0'
+    mysqlVersion = findProperty("mysqlVersion") ?: "9.3.0"
 }
 
 java {
@@ -56,10 +59,13 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-security-oauth2-authorization-server'
     implementation 'org.springframework.boot:spring-boot-starter-security-oauth2-resource-server'
     implementation 'org.springframework.boot:spring-boot-starter-websocket'
+    implementation 'org.springframework.boot:spring-boot-starter-kafka'
+    testImplementation 'org.springframework.kafka:spring-kafka-test'
     developmentOnly 'org.springframework.boot:spring-boot-devtools'
 
     // Spring Extensions
     implementation 'org.thymeleaf.extras:thymeleaf-extras-springsecurity6'
+    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:3.0.1'
 
     // Internal DB management / Postgres
     implementation 'org.postgresql:postgresql'
@@ -81,6 +87,14 @@ dependencies {
     implementation "org.apache.cassandra:java-driver-query-builder:${cassandraDriverVersion}"
     implementation "org.apache.cassandra:java-driver-mapper-runtime:${cassandraDriverVersion}"
 
+    // Elastic Search
+    implementation "co.elastic.clients:elasticsearch-java:${elasticsearchVersion}"
+
+    // MySQL
+    runtimeOnly "com.mysql:mysql-connector-j:${mysqlVersion}"
+
+    // RabbitMQ
+    implementation 'com.rabbitmq:amqp-client:5.29.0'
 
     // Annotation Processors
     compileOnly 'org.projectlombok:lombok'
@@ -100,6 +114,27 @@ dependencies {
     testImplementation 'org.springframework.boot:spring-boot-starter-validation-test'
     testImplementation 'org.springframework.boot:spring-boot-starter-webmvc-test'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+    testImplementation 'org.junit.platform:junit-platform-suite-api:6.0.3'
+
+
+    // Testcontainers
+    testImplementation 'org.testcontainers:testcontainers'
+    testImplementation 'org.testcontainers:junit-jupiter:1.21.4'
+    testImplementation 'org.testcontainers:postgresql:1.21.4'
+
+    // BDD / Cucumber
+    testImplementation 'io.cucumber:cucumber-java:7.20.1'
+    testImplementation 'io.cucumber:cucumber-spring:7.20.1'
+    testImplementation 'io.cucumber:cucumber-junit-platform-engine:7.20.1'
+
+    // Assertions + Mocking
+    testImplementation 'org.assertj:assertj-core'
+    testImplementation 'org.mockito:mockito-core'
+    testImplementation 'org.awaitility:awaitility:4.2.2'
+
+    // Lombok in tests
+    testCompileOnly 'org.projectlombok:lombok'
+    testAnnotationProcessor 'org.projectlombok:lombok'
 }
 
 tasks.named('test') {
@@ -114,10 +149,57 @@ jacocoTestReport {
         html.required = true
         html.outputLocation = layout.buildDirectory.dir("reports/jacocoHtml")
     }
+
+    afterEvaluate {
+        classDirectories.setFrom(files(classDirectories.files.collect {
+            fileTree(dir: it, exclude: [
+                    // DTOs, records, entities — minimal logic
+                    '**/dto/**',
+                    '**/entity/**',
+                    '**/model/**',
+                    '**/exceptions/**',
+                    // Config / bootstrap — tested via integration
+                    '**/config/**',
+                    '**/TesseraApplication.*',
+                    // Annotations
+                    '**/annotations/**'
+            ])
+        }))
+    }
 }
 
-jacoco {
-    toolVersion = "0.8.14"
+jacocoTestCoverageVerification {
+    dependsOn jacocoTestReport
+    violationRules {
+        rule {
+            limit {
+                counter = 'LINE'
+                value = 'COVEREDRATIO'
+                minimum = 0.90
+            }
+        }
+        rule {
+            limit {
+                counter = 'BRANCH'
+                value = 'COVEREDRATIO'
+                minimum = 0.80
+            }
+        }
+    }
+
+    afterEvaluate {
+        classDirectories.setFrom(files(classDirectories.files.collect {
+            fileTree(dir: it, exclude: [
+                    '**/dto/**', '**/entity/**', '**/model/**',
+                    '**/exceptions/**', '**/config/**',
+                    '**/TesseraApplication.*', '**/annotations/**'
+            ])
+        }))
+    }
+}
+
+tasks.named('check') {
+    dependsOn jacocoTestCoverageVerification
 }
 
 def gitTagVersion() {
@@ -146,6 +228,39 @@ node {
     workDir = layout.buildDirectory.dir("node")
     npmWorkDir = layout.buildDirectory.dir("npm")
     nodeProjectDir = frontendDir
+}
+
+spotless {
+    java {
+        target 'src/**/*.java'
+
+        googleJavaFormat()
+
+        removeUnusedImports()
+        trimTrailingWhitespace()
+        endWithNewline()
+
+        importOrder('java', 'jakarta', 'org', 'com', '')
+    }
+
+    format 'misc', {
+        target '*.gradle', '*.md', '.gitignore'
+
+        trimTrailingWhitespace()
+        endWithNewline()
+    }
+}
+
+checkstyle {
+    toolVersion = "13.3.0"
+    configDirectory = file("$rootDir/config/checkstyle")
+}
+
+tasks.withType(Checkstyle).configureEach {
+    reports {
+        xml.required = true
+        html.required = true
+    }
 }
 
 tasks.register("npmCi", NpmTask) {
@@ -183,7 +298,12 @@ tasks.named("processResources") {
         filter(ReplaceTokens, tokens: [
                 appVersion: project.version.toString(),
                 h3Version : project.ext.h3Version.toString(),
-                jtsVersion : project.ext.jtsVersion.toString()
+                jtsVersion : project.ext.jtsVersion.toString(),
+                elasticsearchVersion : project.ext.elasticsearchVersion.toString(),
+                cassandraDriverVersion : project.ext.cassandraDriverVersion.toString(),
+                postgisJdbcVersion : project.ext.postgisJdbcVersion.toString(),
+                oracleDependencyVersion : project.ext.oracleDependencyVersion.toString(),
+                mysqlVersion : project.ext.mysqlVersion.toString()
         ])
     }
 }

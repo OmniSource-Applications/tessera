@@ -4,8 +4,8 @@
   <img alt="tessera logo" src="src/main/resources/static/images/tessera dark.png" width="250">
 </picture>
 
-Tessera is an opensource geospatial platform that allows users to aggregate geospatial data from multiple data 
-sources and perform spatial analysis and live-streaming of data to web map applications. 
+Tessera is an opensource geospatial platform that allows users to aggregate geospatial data from multiple data
+sources and perform spatial analysis and live-streaming of data to web map applications.
 Built on Uber's H3 spatial index system, tessera is designed for interoperability between
 different data sources allowing users to fuse, modify, and visualize geospatial data in real-time.
 
@@ -38,7 +38,7 @@ TODO: User Guide
 
 ---
 
-Tessera requires a specific configuration of PostgreSQL + postgis with pg-h3 and partman installed. A dockerfile 
+Tessera requires a specific configuration of PostgreSQL + postgis with pg-h3 and partman installed. A dockerfile
 located in `ops/tessera/postgres` is available for example use and development.
 
 To develop with Tessera, currently there is a docker-compose structure found in `ops/tessera` to build the application
@@ -62,4 +62,3 @@ TODO: Community Support Page
 ---
 
 TODO: Bug issues
-

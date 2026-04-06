@@ -33,7 +33,7 @@
                 </div>
                 <button type="submit"
                         sec:authorize="hasAuthority('TESSERA_RBAC_EDIT')"
-                        class="h-9 rounded-lg bg-primary text-primary-foreground px-4 text-sm font-semibold hover:opacity-90">
+                        class="h-9 rounded-lg bg-primary text-primary-foreground px-4 text-sm font-semibold hover:bg-primary-hover transition-colors">
                     Save
                 </button>
                 <span sec:authorize="!hasAuthority('TESSERA_RBAC_EDIT')"
@@ -45,7 +45,7 @@
                           rows="28"
                           spellcheck="false"
                           sec:authorize="hasAuthority('TESSERA_RBAC_EDIT')"
-                          class="w-full font-mono text-xs rounded-lg bg-background border border-border px-3 py-3 text-foreground placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-primary/40"
+                          class="w-full font-mono text-xs rounded-lg bg-background border border-input px-3 py-3 text-foreground placeholder:text-placeholder focus:outline-none focus:ring-2 focus:ring-ring/40 focus:border-primary hover:border-input-hover transition-colors"
                           th:text="${json}"></textarea>
 
                 <textarea name="json"

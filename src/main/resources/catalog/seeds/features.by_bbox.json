@@ -1,0 +1,21 @@
+{
+  "name": "features.by_bbox",
+  "description": "Fetch all geo features within a bounding box",
+  "category": "STATIC",
+  "querySql": "SELECT f.id, f.external_id, f.source_table, ST_AsGeoJSON(f.geometry)::jsonb AS geometry, f.attributes, f.updated_at FROM tessera.geo_features f WHERE ST_Intersects(f.geometry, ST_MakeEnvelope(:minLon, :minLat, :maxLon, :maxLat, 4326)) AND f.source_id = COALESCE(:sourceId::uuid, f.source_id) ORDER BY f.updated_at DESC LIMIT :limit OFFSET :offset",
+  "paramSchema": {
+    "type": "object",
+    "properties": {
+      "minLon": { "type": "number" },
+      "minLat": { "type": "number" },
+      "maxLon": { "type": "number" },
+      "maxLat": { "type": "number" },
+      "sourceId": { "type": "string", "nullable": true },
+      "limit": { "type": "integer", "default": 1000 },
+      "offset": { "type": "integer", "default": 0 }
+    }
+  },
+  "timeoutMs": 30000,
+  "streaming": false,
+  "tags": ["spatial", "bbox"]
+}

@@ -38,7 +38,7 @@
         <p class="px-3 mb-2 text-[0.65rem] font-semibold uppercase tracking-widest text-muted">Overview</p>
 
         <a th:href="@{/}"
-           th:classappend="${'/'} ? 'bg-primary/10 text-primary' : 'text-muted hover:text-foreground hover:bg-background'"
+           th:classappend="${currentPath == '/' or currentPath == ''} ? 'bg-primary/10 text-primary' : 'text-muted hover:text-foreground hover:bg-background'"
            class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors">
             <svg class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z"/>
@@ -49,7 +49,7 @@
         <p class="px-3 mt-5 mb-2 text-[0.65rem] font-semibold uppercase tracking-widest text-muted">Data</p>
 
         <a th:href="@{/workspaces}"
-           th:classappend="${'/workspaces'} ? 'bg-primary/10 text-primary' : 'text-muted hover:text-foreground hover:bg-background'"
+           th:classappend="${#strings.startsWith(currentPath, '/workspaces')} ? 'bg-primary/10 text-primary' : 'text-muted hover:text-foreground hover:bg-background'"
            class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors">
             <svg class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
                 <path stroke-linecap="round" stroke-linejoin="round"
@@ -59,7 +59,7 @@
         </a>
 
         <a th:href="@{/layergroups}"
-           th:classappend="${'/layergroups'} ? 'bg-primary/10 text-primary' : 'text-muted hover:text-foreground hover:bg-background'"
+           th:classappend="${#strings.startsWith(currentPath, '/layergroups')} ? 'bg-primary/10 text-primary' : 'text-muted hover:text-foreground hover:bg-background'"
            class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors">
             <svg class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
                 <path stroke-linecap="round" stroke-linejoin="round"
@@ -67,11 +67,11 @@
                 <path stroke-linecap="round" stroke-linejoin="round"
                       d="M1.5 6v12M22.5 6v12"/>
             </svg>
-            Layers Groups
+            Layer Groups
         </a>
 
         <a th:href="@{/layers}"
-           th:classappend="${'/layers'} ? 'bg-primary/10 text-primary' : 'text-muted hover:text-foreground hover:bg-background'"
+           th:classappend="${#strings.startsWith(currentPath, '/layers')} ? 'bg-primary/10 text-primary' : 'text-muted hover:text-foreground hover:bg-background'"
            class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors">
             <svg class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
                 <path stroke-linecap="round" stroke-linejoin="round"
@@ -81,7 +81,7 @@
         </a>
 
         <a th:href="@{/map}"
-           th:classappend="${'/map'} ? 'bg-primary/10 text-primary' : 'text-muted hover:text-foreground hover:bg-background'"
+           th:classappend="${#strings.startsWith(currentPath, '/map')} ? 'bg-primary/10 text-primary' : 'text-muted hover:text-foreground hover:bg-background'"
            class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors">
             <svg class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M9 6.75V15m6-6v8.25m.503 3.498 4.875-2.437c.381-.19.622-.58.622-1.006V4.82c0-.836-.88-1.38-1.628-1.006l-3.869 1.934c-.317.159-.69.159-1.006 0L9.503 3.252a1.125 1.125 0 0 0-1.006 0L3.622 5.689C3.24 5.88 3 6.27 3 6.695V19.18c0 .836.88 1.38 1.628 1.006l3.869-1.934c.317-.159.69-.159 1.006 0l4.994 2.497c.317.158.69.158 1.006 0Z"/>
@@ -90,7 +90,7 @@
         </a>
 
         <a th:href="@{/sources}"
-           th:classappend="${'/sources'} ? 'bg-primary/10 text-primary' : 'text-muted hover:text-foreground hover:bg-background'"
+           th:classappend="${#strings.startsWith(currentPath, '/sources')} ? 'bg-primary/10 text-primary' : 'text-muted hover:text-foreground hover:bg-background'"
            class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors">
             <svg class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M20.25 6.375c0 2.278-3.694 4.125-8.25 4.125S3.75 8.653 3.75 6.375m16.5 0c0-2.278-3.694-4.125-8.25-4.125S3.75 4.097 3.75 6.375m16.5 0v11.25c0 2.278-3.694 4.125-8.25 4.125s-8.25-1.847-8.25-4.125V6.375m16.5 0v3.75m-16.5-3.75v3.75m16.5 0v3.75C20.25 16.153 16.556 18 12 18s-8.25-1.847-8.25-4.125v-3.75m16.5 0c0 2.278-3.694 4.125-8.25 4.125s-8.25-1.847-8.25-4.125"/>
@@ -99,16 +99,26 @@
         </a>
 
         <a th:href="@{/query}"
-           th:classappend="${'/query'} ? 'bg-primary/10 text-primary' : 'text-muted hover:text-foreground hover:bg-background'"
+           th:classappend="${#strings.startsWith(currentPath, '/query') and !#strings.startsWith(currentPath, '/query/builder')} ? 'bg-primary/10 text-primary' : 'text-muted hover:text-foreground hover:bg-background'"
            class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors">
             <svg class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"/>
             </svg>
-            Query
+            Query Catalog
+        </a>
+
+        <a th:href="@{/query/builder}"
+           th:classappend="${#strings.startsWith(currentPath, '/query/builder')} ? 'bg-primary/10 text-primary' : 'text-muted hover:text-foreground hover:bg-background'"
+           class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors">
+            <svg class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                      d="M13.5 16.875h3.375m0 0h3.375m-3.375 0V13.5m0 3.375v3.375M6 10.5h2.25a2.25 2.25 0 0 0 2.25-2.25V6a2.25 2.25 0 0 0-2.25-2.25H6A2.25 2.25 0 0 0 3.75 6v2.25A2.25 2.25 0 0 0 6 10.5Zm0 9.75h2.25A2.25 2.25 0 0 0 10.5 18v-2.25a2.25 2.25 0 0 0-2.25-2.25H6a2.25 2.25 0 0 0-2.25 2.25V18A2.25 2.25 0 0 0 6 20.25Zm9.75-9.75H18a2.25 2.25 0 0 0 2.25-2.25V6A2.25 2.25 0 0 0 18 3.75h-2.25A2.25 2.25 0 0 0 13.5 6v2.25a2.25 2.25 0 0 0 2.25 2.25Z"/>
+            </svg>
+            Query Builder
         </a>
 
         <a th:href="@{/streams}"
-           th:classappend="${'/streams'} ? 'bg-primary/10 text-primary' : 'text-muted hover:text-foreground hover:bg-background'"
+           th:classappend="${#strings.startsWith(currentPath, '/streams')} ? 'bg-primary/10 text-primary' : 'text-muted hover:text-foreground hover:bg-background'"
            class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors">
             <svg class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M9.348 14.651a3.75 3.75 0 010-5.303m5.304 0a3.75 3.75 0 010 5.303m-7.425 2.122a6.75 6.75 0 010-9.546m9.546 0a6.75 6.75 0 010 9.546M5.106 18.894c-3.808-3.808-3.808-9.98 0-13.789m13.788 0c3.808 3.808 3.808 9.981 0 13.79"/>
@@ -119,7 +129,7 @@
         <p class="px-3 mt-5 mb-2 text-[0.65rem] font-semibold uppercase tracking-widest text-muted">System</p>
 
         <a th:href="@{/settings}"
-           th:classappend="${'/settings'} ? 'bg-primary/10 text-primary' : 'text-muted hover:text-foreground hover:bg-background'"
+           th:classappend="${currentPath == '/settings'} ? 'bg-primary/10 text-primary' : 'text-muted hover:text-foreground hover:bg-background'"
            class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors">
             <svg class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.324.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 011.37.49l1.296 2.247a1.125 1.125 0 01-.26 1.431l-1.003.827c-.293.24-.438.613-.431.992a6.759 6.759 0 010 .255c-.007.378.138.75.43.99l1.005.828c.424.35.534.954.26 1.43l-1.298 2.247a1.125 1.125 0 01-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.57 6.57 0 01-.22.128c-.331.183-.581.495-.644.869l-.213 1.28c-.09.543-.56.941-1.11.941h-2.594c-.55 0-1.02-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 01-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 01-1.369-.49l-1.297-2.247a1.125 1.125 0 01.26-1.431l1.004-.827c.292-.24.437-.613.43-.992a6.932 6.932 0 010-.255c.007-.378-.138-.75-.43-.99l-1.004-.828a1.125 1.125 0 01-.26-1.43l1.297-2.247a1.125 1.125 0 011.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.087.22-.128.332-.183.582-.495.644-.869l.214-1.281z"/>
@@ -128,8 +138,18 @@
             Settings
         </a>
 
+        <a th:href="@{/settings/api-keys}"
+           th:classappend="${#strings.startsWith(currentPath, '/settings/api-keys')} ? 'bg-primary/10 text-primary' : 'text-muted hover:text-foreground hover:bg-background'"
+           class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors">
+            <svg class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                      d="M15.75 5.25a3 3 0 0 1 3 3m3 0a6 6 0 0 1-7.029 5.912c-.563-.097-1.159.026-1.563.43L10.5 17.25H8.25v2.25H6v2.25H2.25v-2.818c0-.597.237-1.17.659-1.591l6.499-6.499c.404-.404.527-1 .43-1.563A6 6 0 1 1 21.75 8.25Z"/>
+            </svg>
+            API Keys
+        </a>
+
         <a th:href="@{/security}"
-           th:classappend="${'/security'} ? 'bg-primary/10 text-primary' : 'text-muted hover:text-foreground hover:bg-background'"
+           th:classappend="${#strings.startsWith(currentPath, '/security')} ? 'bg-primary/10 text-primary' : 'text-muted hover:text-foreground hover:bg-background'"
            class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors">
             <svg class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
                 <path stroke-linecap="round" stroke-linejoin="round"

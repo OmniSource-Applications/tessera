@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<th:block th:fragment="content">
+
+    <!-- Breadcrumb -->
+    <nav class="mb-6 text-sm text-muted">
+        <a th:href="@{/workspaces}" class="hover:text-foreground transition-colors">Workspaces</a>
+        <span class="mx-1.5">/</span>
+        <a th:href="@{/workspaces/{ws}(ws=${workspace})}" class="hover:text-foreground transition-colors"
+           th:text="${workspace}">ws</a>
+        <span class="mx-1.5">/</span>
+        <span class="text-foreground font-medium">Live Feeds</span>
+    </nav>
+
+    <!-- Header -->
+    <div class="flex items-start justify-between gap-4 mb-6">
+        <div>
+            <h2 class="text-lg font-semibold text-foreground">Live Feeds</h2>
+            <p class="mt-1 text-sm text-muted">
+                <span th:text="${#lists.size(feeds)}">0</span> feed(s) configured,
+                <span th:text="${activeFeedCount}">0</span> active
+            </p>
+        </div>
+        <a th:href="@{/workspaces/{ws}/feeds/new(ws=${workspace})}"
+           class="inline-flex items-center gap-2 rounded-lg bg-primary text-primary-foreground px-4 py-2.5 text-sm
+                  font-medium hover:bg-primary-hover transition-all">
+            <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/>
+            </svg>
+            New Feed
+        </a>
+    </div>
+
+    <!-- Flash -->
+    <div th:if="${success}" class="mb-6 rounded-lg bg-success/10 border border-success/20 px-4 py-3 text-sm text-success" th:text="${success}"></div>
+    <div th:if="${error}" class="mb-6 rounded-lg bg-danger/10 border border-danger/20 px-4 py-3 text-sm text-danger" th:text="${error}"></div>
+
+    <!-- Empty state -->
+    <div th:if="${#lists.isEmpty(feeds)}" class="text-center py-16">
+        <svg class="mx-auto h-12 w-12 text-muted mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+            <path stroke-linecap="round" stroke-linejoin="round"
+                  d="M9.348 14.651a3.75 3.75 0 010-5.303m5.304 0a3.75 3.75 0 010 5.303m-7.425 2.122a6.75 6.75 0 010-9.546m9.546 0a6.75 6.75 0 010 9.546M5.106 18.894c-3.808-3.808-3.808-9.98 0-13.789m13.788 0c3.808 3.808 3.808 9.981 0 13.79"/>
+        </svg>
+        <p class="text-sm text-muted">No feeds configured for this workspace.</p>
+        <p class="text-xs text-muted mt-1">Create a feed to start ingesting live data via REST, TCP, WebSocket, Kafka, or AMQP.</p>
+    </div>
+
+    <!-- Feed cards -->
+    <div th:if="${!#lists.isEmpty(feeds)}" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+        <a th:each="feed, stat : ${feeds}"
+           th:href="@{/workspaces/{ws}/feeds/{name}(ws=${workspace}, name=${feed.name()})}"
+           class="block bg-surface border border-border rounded-xl p-5 hover:border-primary/40
+                  hover:shadow-sm transition-all group">
+
+            <div class="flex items-start justify-between mb-3">
+                <div class="flex items-center gap-2.5">
+                    <span th:with="status=${statuses[stat.index]}"
+                          class="h-2.5 w-2.5 rounded-full shrink-0"
+                          th:classappend="${status.state().name() == 'RUNNING'} ? 'bg-success animate-pulse' :
+                                          (${status.state().name() == 'ERROR' || status.state().name() == 'RECONNECTING'} ? 'bg-warning' : 'bg-muted/40')"></span>
+                    <h3 class="text-sm font-semibold text-foreground group-hover:text-primary transition-colors font-mono"
+                        th:text="${feed.name()}">feed-name</h3>
+                </div>
+                <span class="inline-flex items-center rounded-md px-2 py-0.5 text-[0.6rem] font-bold uppercase tracking-wide"
+                      th:classappend="${feed.type().name() == 'KAFKA'} ? 'bg-accent/10 text-accent' :
+                                      (${feed.type().name() == 'WEBSOCKET'} ? 'bg-primary/10 text-primary' :
+                                      (${feed.type().name() == 'TCP'} ? 'bg-warning/10 text-warning' :
+                                      (${feed.type().name() == 'AMQP'} ? 'bg-success/10 text-success' : 'bg-muted/10 text-muted')))"
+                      th:text="${feed.type().name()}">REST</span>
+            </div>
+
+            <p class="text-xs text-muted font-mono truncate mb-3"
+               th:text="${feed.type().name() == 'REST_POLL' ? feed.connection().url() :
+                         (feed.type().name() == 'TCP' ? feed.connection().host() + ':' + feed.connection().port() :
+                         (feed.type().name() == 'WEBSOCKET' ? feed.connection().wsUrl() :
+                         (feed.type().name() == 'KAFKA' ? feed.connection().topic() + ' @ ' + feed.connection().bootstrapServers() :
+                         (feed.type().name() == 'AMQP' ? feed.connection().queue() : '—'))))}">endpoint</p>
+
+            <div th:with="status=${statuses[stat.index]}" class="flex gap-4 text-xs text-muted">
+                <span>Msgs: <span class="font-mono text-foreground" th:text="${status.messagesReceived()}">0</span></span>
+                <span>Ingested: <span class="font-mono text-foreground" th:text="${status.featuresIngested()}">0</span></span>
+                <span th:if="${status.errors() > 0}" class="text-danger">
+                    Errors: <span class="font-mono" th:text="${status.errors()}">0</span>
+                </span>
+            </div>
+        </a>
+    </div>
+
+</th:block>
+
+</body>
+</html>

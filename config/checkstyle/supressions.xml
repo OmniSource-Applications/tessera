@@ -1,0 +1,27 @@
+<?xml version="1.0"?>
+<!DOCTYPE suppressions PUBLIC
+        "-//Checkstyle//DTD SuppressionFilter Configuration 1.2//EN"
+        "https://checkstyle.org/dtds/suppressions_1_2.dtd">
+
+<suppressions>
+
+    <suppress files=".*Test\.java" checks="FinalLocalVariable"/>
+    <suppress files=".*IT\.java" checks="FinalLocalVariable"/>
+    <suppress files=".*Tests\.java" checks="FinalLocalVariable"/>
+
+    <suppress files=".*Test\.java" checks="MissingJavadocMethod"/>
+    <suppress files=".*IT\.java" checks="MissingJavadocMethod"/>
+    <suppress files=".*Tests\.java" checks="MissingJavadocMethod"/>
+
+    <suppress files=".*Test\.java" checks="MissingJavadocType"/>
+    <suppress files=".*IT\.java" checks="MissingJavadocType"/>
+    <suppress files=".*Tests\.java" checks="MissingJavadocType"/>
+
+    <suppress files=".*Test\.java" checks="LineLength"/>
+    <suppress files=".*IT\.java" checks="LineLength"/>
+    <suppress files=".*Tests\.java" checks="LineLength"/>
+
+    <suppress files=".*/config/.*\.java" checks="MissingJavadocType"/>
+    <suppress files=".*/config/.*\.java" checks="MissingJavadocMethod"/>
+
+</suppressions>

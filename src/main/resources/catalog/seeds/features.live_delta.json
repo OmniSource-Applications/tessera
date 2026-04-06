@@ -1,0 +1,16 @@
+{
+  "name": "features.live_delta",
+  "description": "Streaming: features updated after a given timestamp",
+  "category": "LIVE",
+  "querySql": "SELECT f.id, f.external_id, f.source_id, f.source_table, ST_AsGeoJSON(f.geometry)::jsonb AS geometry, f.attributes, f.updated_at FROM tessera.geo_features f WHERE f.updated_at > :since AND f.source_id = COALESCE(:sourceId::uuid, f.source_id) ORDER BY f.updated_at ASC",
+  "paramSchema": {
+    "type": "object",
+    "properties": {
+      "since": { "type": "string", "format": "date-time" },
+      "sourceId": { "type": "string", "nullable": true }
+    }
+  },
+  "timeoutMs": 30000,
+  "streaming": true,
+  "tags": ["live", "delta", "streaming"]
+}

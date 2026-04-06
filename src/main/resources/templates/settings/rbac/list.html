@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<th:block th:fragment="content">
+
+    <!-- Breadcrumb -->
+    <nav class="mb-6 text-sm text-muted">
+        <a th:href="@{/security}" class="hover:text-foreground transition-colors">Security</a>
+        <span class="mx-1.5">/</span>
+        <span class="text-foreground font-medium">RBAC Policies</span>
+    </nav>
+
+    <!-- Flash -->
+    <div th:if="${success}" class="mb-6 rounded-lg bg-success/10 border border-success/20 px-4 py-3 text-sm text-success" th:text="${success}"></div>
+    <div th:if="${error}" class="mb-6 rounded-lg bg-danger/10 border border-danger/20 px-4 py-3 text-sm text-danger" th:text="${error}"></div>
+
+    <!-- Explainer -->
+    <div class="bg-surface border border-border rounded-xl p-5 mb-6">
+        <div class="flex items-start gap-3">
+            <svg class="h-5 w-5 text-accent shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                      d="M12 3.375 3.75 6.75v4.875c0 5.152 3.533 9.967 8.25 11.25 4.717-1.283 8.25-6.098 8.25-11.25V6.75L12 3.375Z"/>
+            </svg>
+            <div>
+                <h3 class="text-sm font-semibold text-foreground">How RBAC works</h3>
+                <p class="text-xs text-muted mt-1">
+                    Each policy file maps <strong>subjects</strong> (users identified by OIDC claims or username) to <strong>roles</strong>.
+                    Global roles apply everywhere and override workspace-scoped roles.
+                    A user with <code class="text-xs bg-background px-1 rounded font-mono">TESSERA_PLATFORM_ADMIN</code> globally
+                    has full access to every workspace automatically.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Policy Files Table -->
+    <div class="bg-surface border border-border rounded-xl overflow-hidden">
+        <div class="px-6 py-4 border-b border-border flex items-center justify-between gap-4">
+            <div class="text-sm text-muted">
+                <span th:text="${#lists.size(policies)}">0</span> policy file(s)
+                · <span class="font-mono text-xs">data_dir/etc/auth/rbac/</span>
+            </div>
+            <form th:action="@{/settings/rbac/new}" method="post" class="flex items-center gap-2">
+                <input name="name" placeholder="team-policy.json" required
+                       class="h-9 w-56 rounded-lg bg-background border border-input px-3 text-sm text-foreground
+                              placeholder:text-placeholder focus:outline-none focus:ring-2 focus:ring-ring/40
+                              hover:border-input-hover transition-colors"/>
+                <button type="submit"
+                        class="h-9 rounded-lg bg-primary text-primary-foreground px-4 text-sm font-semibold
+                               hover:bg-primary-hover transition-colors">
+                    New Policy
+                </button>
+            </form>
+        </div>
+
+        <div th:if="${#lists.isEmpty(policies)}" class="px-6 py-10 text-center">
+            <svg class="mx-auto h-10 w-10 text-muted mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                      d="M12 3.375 3.75 6.75v4.875c0 5.152 3.533 9.967 8.25 11.25 4.717-1.283 8.25-6.098 8.25-11.25V6.75L12 3.375Z"/>
+            </svg>
+            <p class="text-sm text-muted">No policy files yet. Create one to start assigning roles.</p>
+        </div>
+
+        <table th:if="${!#lists.isEmpty(policies)}" class="w-full text-sm text-left">
+            <thead class="border-b border-border">
+            <tr>
+                <th class="px-6 py-3 font-medium text-muted text-xs uppercase tracking-wide">File</th>
+                <th class="px-6 py-3 font-medium text-muted text-xs uppercase tracking-wide">Modified</th>
+                <th class="px-6 py-3 font-medium text-muted text-xs uppercase tracking-wide">Size</th>
+                <th class="px-6 py-3 font-medium text-muted text-xs uppercase tracking-wide text-right">Actions</th>
+            </tr>
+            </thead>
+            <tbody class="divide-y divide-border">
+            <tr th:each="p : ${policies}" class="hover:bg-background/50 transition-colors">
+                <td class="px-6 py-3">
+                    <a th:href="@{/settings/rbac/{f}(f=${p.name})}"
+                       class="font-mono text-xs font-medium text-foreground hover:text-primary transition-colors"
+                       th:text="${p.name}">policy.json</a>
+                </td>
+                <td class="px-6 py-3 text-xs text-muted" th:text="${p.modified}">—</td>
+                <td class="px-6 py-3 text-xs text-muted"
+                    th:text="${p.size >= 0} ? ${p.size} + ' B' : '—'">—</td>
+                <td class="px-6 py-3 text-right">
+                    <div class="flex items-center justify-end gap-2">
+                        <a th:href="@{/settings/rbac/{f}(f=${p.name})}"
+                           class="rounded-lg px-3 py-1.5 text-xs font-medium text-primary hover:bg-primary/10 transition-colors">
+                            Edit
+                        </a>
+                        <form th:action="@{/settings/rbac/{f}/delete(f=${p.name})}" method="post"
+                              onsubmit="return confirm('Delete this policy file?');">
+                            <button type="submit"
+                                    class="rounded-lg px-3 py-1.5 text-xs font-medium text-danger hover:bg-danger/10 transition-colors">
+                                Delete
+                            </button>
+                        </form>
+                    </div>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+</th:block>
+
+</body>
+</html>

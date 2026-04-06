@@ -1,0 +1,18 @@
+{
+  "name": "features.within_radius",
+  "description": "Features within radius (meters) of a point",
+  "category": "STATIC",
+  "querySql": "SELECT f.id, f.external_id, f.source_table, ST_AsGeoJSON(f.geometry)::jsonb AS geometry, ST_Distance(f.geometry::geography, ST_Point(:lon, :lat, 4326)::geography) AS distance_m, f.attributes FROM tessera.geo_features f WHERE ST_DWithin(f.geometry::geography, ST_Point(:lon, :lat, 4326)::geography, :radiusMeters) ORDER BY distance_m LIMIT :limit",
+  "paramSchema": {
+    "type": "object",
+    "properties": {
+      "lon": { "type": "number" },
+      "lat": { "type": "number" },
+      "radiusMeters": { "type": "number" },
+      "limit": { "type": "integer", "default": 500 }
+    }
+  },
+  "timeoutMs": 30000,
+  "streaming": false,
+  "tags": ["spatial", "radius"]
+}
